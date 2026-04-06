@@ -3,11 +3,19 @@ import { useParams } from 'react-router-dom'
 import { getSocket } from '../lib/socket'
 import type { Session, Round } from '../lib/types'
 
+function generateId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
+
 function getOrCreateVoterId(sessionId: string): string {
   const key = `voter_${sessionId}`
   let id = localStorage.getItem(key)
   if (!id) {
-    id = crypto.randomUUID()
+    id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : generateId()
     localStorage.setItem(key, id)
   }
   return id
