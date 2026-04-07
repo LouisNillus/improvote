@@ -10,6 +10,24 @@ const PALETTE = [
 
 const RADIUS = 62
 
+interface Country {
+  code: string
+  name: string
+  flag: string
+  primary: string
+  secondary: string
+}
+
+const COUNTRIES: Country[] = [
+  { code: 'FR', name: 'France',     flag: '🇫🇷', primary: '#4f8ef7', secondary: '#e84139' },
+  { code: 'BE', name: 'Belgique',   flag: '🇧🇪', primary: '#f5c400', secondary: '#e84139' },
+  { code: 'LU', name: 'Luxembourg', flag: '🇱🇺', primary: '#ef4135', secondary: '#38bdf8' },
+  { code: 'MC', name: 'Monaco',     flag: '🇲🇨', primary: '#ce1126', secondary: '#94a3b8' },
+  { code: 'CH', name: 'Suisse',     flag: '🇨🇭', primary: '#ff3333', secondary: '#94a3b8' },
+  { code: 'QC', name: 'Québec',     flag: '🇨🇦', primary: '#3B5BC8', secondary: '#ce1126' },
+  { code: 'MA', name: 'Maroc',      flag: '🇲🇦', primary: '#c1272d', secondary: '#22c55e' },
+]
+
 function RadialColorPicker({ value, onChange, exclude }: {
   value: string; onChange: (c: string) => void; exclude?: string
 }) {
@@ -37,7 +55,6 @@ function RadialColorPicker({ value, onChange, exclude }: {
 
   return (
     <div ref={containerRef} style={{ position: 'relative', width: 36, height: 36, flexShrink: 0, zIndex: open ? 50 : 1 }}>
-      {/* Trigger */}
       <button
         type="button"
         onClick={toggle}
@@ -55,7 +72,6 @@ function RadialColorPicker({ value, onChange, exclude }: {
         }}
       />
 
-      {/* Backdrop — grise le reste + attrape les clics extérieurs */}
       {open && !closing && (
         <div
           style={{ position: 'fixed', inset: 0, zIndex: 1, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)', transition: 'opacity 0.2s' }}
@@ -63,12 +79,10 @@ function RadialColorPicker({ value, onChange, exclude }: {
         />
       )}
 
-      {/* Swatches — le bouton est le point gauche du cercle, tout s'étale à droite */}
       {(open || closing) && PALETTE.map((color, i) => {
         const selectedIdx = PALETTE.indexOf(value)
-        // Centre du cercle décalé à droite du bouton → le bouton = point gauche (angle π)
         const angle = Math.PI + ((i - selectedIdx) / PALETTE.length) * 2 * Math.PI
-        const sx = RADIUS + Math.cos(angle) * RADIUS   // toujours 0..2*RADIUS (jamais à gauche)
+        const sx = RADIUS + Math.cos(angle) * RADIUS
         const sy = Math.sin(angle) * RADIUS
         const isExcluded = color === exclude
         const isSelected = color === value
@@ -98,7 +112,6 @@ function RadialColorPicker({ value, onChange, exclude }: {
               className="swatch-inner"
               onMouseDown={e => { e.stopPropagation(); onChange(color); close() }}
               style={{
-                background: color,
                 background: isExcluded
                   ? `repeating-linear-gradient(45deg, ${color} 0px, ${color} 4px, #1a1f2e 4px, #1a1f2e 8px)`
                   : color,
@@ -114,6 +127,98 @@ function RadialColorPicker({ value, onChange, exclude }: {
   )
 }
 
+function CountryPicker({ value, onChange }: {
+  value: string | null
+  onChange: (code: string | null) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const selected = value ? COUNTRIES.find(c => c.code === value) : null
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    setTimeout(() => document.addEventListener('mousedown', handler), 0)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', flexShrink: 0 }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        title="Choisir un pays"
+        style={{
+          width: 36, height: 36,
+          borderRadius: 8,
+          border: `1px solid ${open ? 'rgba(255,255,255,0.2)' : 'var(--border)'}`,
+          background: 'var(--surface-2)',
+          cursor: 'pointer',
+          fontSize: selected ? '1.25rem' : '0.9rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'border-color 0.15s',
+        }}
+      >
+        {selected ? selected.flag : '🌍'}
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute',
+          right: 0,
+          bottom: 44,
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 12,
+          padding: 6,
+          zIndex: 100,
+          minWidth: 160,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}>
+          {value && (
+            <button
+              type="button"
+              onMouseDown={() => { onChange(null); setOpen(false) }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '6px 10px', borderRadius: 8,
+                border: 'none', background: 'transparent',
+                color: 'var(--muted)', cursor: 'pointer',
+                fontSize: '0.85rem', textAlign: 'left',
+              }}
+            >
+              ✕ Aucun pays
+            </button>
+          )}
+          {COUNTRIES.map(c => (
+            <button
+              key={c.code}
+              type="button"
+              onMouseDown={() => { onChange(c.code); setOpen(false) }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '6px 10px', borderRadius: 8,
+                border: 'none',
+                background: c.code === value ? 'var(--surface-2)' : 'transparent',
+                color: 'var(--text)', cursor: 'pointer',
+                fontSize: '0.9rem', textAlign: 'left',
+              }}
+            >
+              <span style={{ fontSize: '1.2rem' }}>{c.flag}</span>
+              <span>{c.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Home() {
   const navigate = useNavigate()
 
@@ -121,12 +226,30 @@ export default function Home() {
   const [teamB, setTeamB] = useState('')
   const [colorA, setColorA] = useState('#4f8ef7')
   const [colorB, setColorB] = useState('#f74f6a')
+  const [countryA, setCountryA] = useState<string | null>(null)
+  const [countryB, setCountryB] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
 
   const [code, setCode] = useState('')
   const [joining, setJoining] = useState(false)
   const [joinError, setJoinError] = useState('')
+
+  function selectCountry(team: 'A' | 'B', code: string | null) {
+    if (team === 'A') {
+      setCountryA(code)
+      if (!code) return
+      const c = COUNTRIES.find(x => x.code === code)!
+      setTeamA(c.name)
+      setColorA(c.primary === colorB ? c.secondary : c.primary)
+    } else {
+      setCountryB(code)
+      if (!code) return
+      const c = COUNTRIES.find(x => x.code === code)!
+      setTeamB(c.name)
+      setColorB(c.primary === colorA ? c.secondary : c.primary)
+    }
+  }
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault()
@@ -164,6 +287,9 @@ export default function Home() {
       setJoining(false)
     }
   }
+
+  const flagA = countryA ? COUNTRIES.find(c => c.code === countryA)?.flag : null
+  const flagB = countryB ? COUNTRIES.find(c => c.code === countryB)?.flag : null
 
   return (
     <div className="min-h-screen spotlight-bg flex flex-col items-center justify-center p-6 gap-6">
@@ -213,12 +339,19 @@ export default function Home() {
 
           {/* Team A */}
           <div className="flex flex-col gap-2" style={{ position: 'relative' }}>
-            <label className="text-xs font-semibold" style={{ color: colorA }}>Équipe A</label>
+            <label className="text-xs font-semibold flex items-center gap-1" style={{ color: colorA }}>
+              Équipe A {flagA && <span style={{ fontSize: '1rem' }}>{flagA}</span>}
+            </label>
             <div className="flex items-center gap-3">
               <RadialColorPicker value={colorA} onChange={setColorA} exclude={colorB} />
               <input className="input flex-1" placeholder="Nom de l'équipe A" value={teamA}
-                onChange={e => setTeamA(e.target.value)} maxLength={40}
+                onChange={e => {
+                  setTeamA(e.target.value)
+                  if (countryA && e.target.value !== COUNTRIES.find(c => c.code === countryA)?.name) setCountryA(null)
+                }}
+                maxLength={40}
                 style={{ borderColor: `${colorA}55` }} />
+              <CountryPicker value={countryA} onChange={code => selectCountry('A', code)} />
             </div>
           </div>
 
@@ -230,12 +363,19 @@ export default function Home() {
 
           {/* Team B */}
           <div className="flex flex-col gap-2" style={{ position: 'relative' }}>
-            <label className="text-xs font-semibold" style={{ color: colorB }}>Équipe B</label>
+            <label className="text-xs font-semibold flex items-center gap-1" style={{ color: colorB }}>
+              Équipe B {flagB && <span style={{ fontSize: '1rem' }}>{flagB}</span>}
+            </label>
             <div className="flex items-center gap-3">
               <RadialColorPicker value={colorB} onChange={setColorB} exclude={colorA} />
               <input className="input flex-1" placeholder="Nom de l'équipe B" value={teamB}
-                onChange={e => setTeamB(e.target.value)} maxLength={40}
+                onChange={e => {
+                  setTeamB(e.target.value)
+                  if (countryB && e.target.value !== COUNTRIES.find(c => c.code === countryB)?.name) setCountryB(null)
+                }}
+                maxLength={40}
                 style={{ borderColor: `${colorB}55` }} />
+              <CountryPicker value={countryB} onChange={code => selectCountry('B', code)} />
             </div>
           </div>
 
