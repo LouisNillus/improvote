@@ -185,10 +185,6 @@ const copyLink = useCallback(() => {
             <span className="text-xs" style={{ color: 'var(--muted)' }}>à saisir sur l'app</span>
           </div>
 
-          <div className="text-xs text-center rounded-lg px-3 py-2 truncate"
-            style={{ background: 'var(--surface-2)', color: 'var(--muted)', border: '1px solid var(--border)' }}>
-            {voteUrl}
-          </div>
           <button className="btn btn-ghost w-full text-sm" onClick={copyLink}>
             {copied ? '✅ Copié !' : '📋 Copier le lien de vote'}
           </button>
