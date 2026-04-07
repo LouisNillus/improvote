@@ -20,6 +20,7 @@ export interface Session {
   rounds: Round[]
   status: 'active' | 'finished'
   locked: boolean
+  code: string
   createdAt: number
   scoreA: number
   scoreB: number

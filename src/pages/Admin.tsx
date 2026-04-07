@@ -175,6 +175,16 @@ const copyLink = useCallback(() => {
           <div className="flex items-center justify-center rounded-xl p-3" style={{ background: '#fff' }}>
             <QRCodeSVG value={voteUrl} size={180} level="M" />
           </div>
+          {/* Code d'accès */}
+          <div className="flex flex-col items-center gap-1 rounded-xl py-3 px-4"
+            style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Code d'accès</span>
+            <span className="font-black tracking-widest" style={{ fontSize: '2rem', color: 'var(--gold)', letterSpacing: '0.2em' }}>
+              {session.code}
+            </span>
+            <span className="text-xs" style={{ color: 'var(--muted)' }}>à saisir sur l'app</span>
+          </div>
+
           <div className="text-xs text-center rounded-lg px-3 py-2 truncate"
             style={{ background: 'var(--surface-2)', color: 'var(--muted)', border: '1px solid var(--border)' }}>
             {voteUrl}

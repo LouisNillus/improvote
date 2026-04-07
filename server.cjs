@@ -15,6 +15,16 @@ const io = new Server(server, {
 // ─── In-memory store ─────────────────────────────────────────────────────────
 const sessions = new Map()  // sessionId → session object
 const tokens = new Map()    // sessionId → admin token
+const codes = new Map()     // accessCode → sessionId
+
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // no I/O/0/1 to avoid confusion
+  let code
+  do {
+    code = Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+  } while (codes.has(code))
+  return code
+}
 
 function createRound(duration, allowNeutral) {
   const now = Date.now()
@@ -70,6 +80,7 @@ app.post('/api/sessions', (req, res) => {
 
   const id = randomUUID().slice(0, 8)
   const token = randomUUID()
+  const code = generateCode()
 
   const session = {
     id,
@@ -78,11 +89,13 @@ app.post('/api/sessions', (req, res) => {
     rounds: [],
     status: 'active',
     locked: false,
+    code,
     createdAt: Date.now()
   }
 
   sessions.set(id, session)
   tokens.set(id, token)
+  codes.set(code, id)
 
   res.json({ session: serializeSession(session), token })
 })
@@ -91,6 +104,12 @@ app.get('/api/sessions/:id', (req, res) => {
   const session = sessions.get(req.params.id)
   if (!session) return res.status(404).json({ error: 'Session introuvable.' })
   res.json(serializeSession(session))
+})
+
+app.get('/api/code/:code', (req, res) => {
+  const sessionId = codes.get(req.params.code.toUpperCase())
+  if (!sessionId) return res.status(404).json({ error: 'Code invalide.' })
+  res.json({ sessionId })
 })
 
 // ─── Socket.io ───────────────────────────────────────────────────────────────
