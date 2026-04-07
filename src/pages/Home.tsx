@@ -63,46 +63,46 @@ function RadialColorPicker({ value, onChange, exclude }: {
         />
       )}
 
-      {/* Swatches */}
+      {/* Swatches — outer div gère la position, inner button gère le scale */}
       {(open || closing) && PALETTE.map((color, i) => {
         const angle = (i / PALETTE.length) * 2 * Math.PI - Math.PI / 2
         const sx = Math.cos(angle) * RADIUS
         const sy = Math.sin(angle) * RADIUS
         const isExcluded = color === exclude
         const isSelected = color === value
+        const size = isSelected ? 32 : 27
 
         return (
-          <button
+          <div
             key={color}
-            type="button"
-            onMouseDown={e => {
-              e.stopPropagation()
-              if (!isExcluded) { onChange(color); close() }
-            }}
             className={closing ? 'swatch-out' : 'swatch-in'}
+            data-excluded={isExcluded ? '' : undefined}
             style={{
               position: 'absolute',
               top: '50%', left: '50%',
-              width: isSelected ? 32 : 27,
-              height: isSelected ? 32 : 27,
-              borderRadius: '50%',
-              background: color,
-              border: isSelected
-                ? '3px solid white'
-                : isExcluded
-                  ? '2px solid rgba(255,255,255,0.1)'
-                  : '2px solid rgba(255,255,255,0.18)',
-              cursor: isExcluded ? 'not-allowed' : 'pointer',
-              opacity: isExcluded ? 0.2 : 1,
-              boxShadow: isSelected ? `0 0 12px ${color}cc, 0 0 4px white` : `0 2px 8px rgba(0,0,0,0.4)`,
+              width: size, height: size,
               zIndex: 10,
               '--sx': `${sx}px`,
               '--sy': `${sy}px`,
               animationDelay: closing
                 ? `${(PALETTE.length - 1 - i) * 10}ms`
                 : `${i * 20}ms`,
+              opacity: isExcluded ? 0.2 : 1,
+              pointerEvents: isExcluded ? 'none' : 'auto',
             } as React.CSSProperties}
-          />
+          >
+            <button
+              type="button"
+              className="swatch-inner"
+              onMouseDown={e => { e.stopPropagation(); onChange(color); close() }}
+              style={{
+                background: color,
+                border: isSelected ? '3px solid white' : '2px solid rgba(255,255,255,0.18)',
+                boxShadow: isSelected ? `0 0 12px ${color}cc, 0 0 4px white` : `0 2px 8px rgba(0,0,0,0.4)`,
+                cursor: 'pointer',
+              }}
+            />
+          </div>
         )
       })}
     </div>
