@@ -13,7 +13,8 @@ const RADIUS = 62
 interface Country {
   code: string
   name: string
-  flag: string
+  flag: string       // emoji ou chemin image
+  flagImg?: boolean  // true = <img>, false = emoji
   primary: string
   secondary: string
 }
@@ -24,9 +25,16 @@ const COUNTRIES: Country[] = [
   { code: 'LU', name: 'Luxembourg', flag: '🇱🇺', primary: '#ef4135', secondary: '#38bdf8' },
   { code: 'MC', name: 'Monaco',     flag: '🇲🇨', primary: '#ce1126', secondary: '#94a3b8' },
   { code: 'CH', name: 'Suisse',     flag: '🇨🇭', primary: '#ff3333', secondary: '#94a3b8' },
-  { code: 'QC', name: 'Québec',     flag: '🇨🇦', primary: '#3B5BC8', secondary: '#ce1126' },
+  { code: 'QC', name: 'Québec',     flag: '/flags/quebec.jpg', flagImg: true, primary: '#3B5BC8', secondary: '#ce1126' },
   { code: 'MA', name: 'Maroc',      flag: '🇲🇦', primary: '#c1272d', secondary: '#22c55e' },
 ]
+
+function FlagDisplay({ country, size = 20 }: { country: Country; size?: number }) {
+  if (country.flagImg) {
+    return <img src={country.flag} alt={country.name} style={{ width: size, height: size * 0.67, objectFit: 'cover', borderRadius: 2, display: 'inline-block' }} />
+  }
+  return <span style={{ fontSize: size * 0.075 + 'rem' }}>{country.flag}</span>
+}
 
 function RadialColorPicker({ value, onChange, exclude }: {
   value: string; onChange: (c: string) => void; exclude?: string
@@ -161,7 +169,7 @@ function CountryPicker({ value, onChange }: {
           transition: 'border-color 0.15s',
         }}
       >
-        {selected ? selected.flag : '🌍'}
+        {selected ? <FlagDisplay country={selected} size={20} /> : <span style={{ fontSize: '0.9rem' }}>🌍</span>}
       </button>
 
       {open && (
@@ -209,7 +217,7 @@ function CountryPicker({ value, onChange }: {
                 fontSize: '0.9rem', textAlign: 'left',
               }}
             >
-              <span style={{ fontSize: '1.2rem' }}>{c.flag}</span>
+              <FlagDisplay country={c} size={20} />
               <span>{c.name}</span>
             </button>
           ))}
@@ -288,9 +296,6 @@ export default function Home() {
     }
   }
 
-  const flagA = countryA ? COUNTRIES.find(c => c.code === countryA)?.flag : null
-  const flagB = countryB ? COUNTRIES.find(c => c.code === countryB)?.flag : null
-
   return (
     <div className="min-h-screen spotlight-bg flex flex-col items-center justify-center p-6 gap-6">
       <div className="w-full max-w-md fade-in">
@@ -339,9 +344,7 @@ export default function Home() {
 
           {/* Team A */}
           <div className="flex flex-col gap-2" style={{ position: 'relative' }}>
-            <label className="text-xs font-semibold flex items-center gap-1" style={{ color: colorA }}>
-              Équipe A {flagA && <span style={{ fontSize: '1rem' }}>{flagA}</span>}
-            </label>
+            <label className="text-xs font-semibold" style={{ color: colorA }}>Équipe A</label>
             <div className="flex items-center gap-3">
               <RadialColorPicker value={colorA} onChange={setColorA} exclude={colorB} />
               <input className="input flex-1" placeholder="Nom de l'équipe A" value={teamA}
@@ -363,9 +366,7 @@ export default function Home() {
 
           {/* Team B */}
           <div className="flex flex-col gap-2" style={{ position: 'relative' }}>
-            <label className="text-xs font-semibold flex items-center gap-1" style={{ color: colorB }}>
-              Équipe B {flagB && <span style={{ fontSize: '1rem' }}>{flagB}</span>}
-            </label>
+            <label className="text-xs font-semibold" style={{ color: colorB }}>Équipe B</label>
             <div className="flex items-center gap-3">
               <RadialColorPicker value={colorB} onChange={setColorB} exclude={colorA} />
               <input className="input flex-1" placeholder="Nom de l'équipe B" value={teamB}
