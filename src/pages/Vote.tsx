@@ -175,15 +175,9 @@ export default function Vote() {
         {/* Score */}
         {session.rounds.some(r => r.status === 'closed') && (
           <div className="card-sm px-5 py-3 flex items-center justify-center gap-4 fade-in">
-            <div className="flex-1 flex flex-col items-center">
-              <div className="font-black text-2xl" style={{ color: 'var(--team-a)' }}>{session.scoreA}</div>
-              <div className="text-xs" style={{ color: 'var(--muted)' }}>{session.teamA}</div>
-            </div>
+            <div className="flex-1 text-center font-black text-2xl" style={{ color: 'var(--team-a)' }}>{session.scoreA}</div>
             <div className="text-xs font-bold" style={{ color: 'var(--muted)' }}>vs</div>
-            <div className="flex-1 flex flex-col items-center">
-              <div className="font-black text-2xl" style={{ color: 'var(--team-b)' }}>{session.scoreB}</div>
-              <div className="text-xs" style={{ color: 'var(--muted)' }}>{session.teamB}</div>
-            </div>
+            <div className="flex-1 text-center font-black text-2xl" style={{ color: 'var(--team-b)' }}>{session.scoreB}</div>
           </div>
         )}
 
