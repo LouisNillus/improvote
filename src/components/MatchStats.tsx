@@ -43,7 +43,8 @@ export default function MatchStats({ session }: MatchStatsProps) {
 function BarChart({ rounds, colorA, colorB, teamA, teamB }: {
   rounds: Round[]; colorA: string; colorB: string; teamA: string; teamB: string
 }) {
-  const W = 500, H = 180, MARGIN_LEFT = 8, MARGIN_BOTTOM = 24, MARGIN_TOP = 12
+  const LEGEND_H = 28
+  const W = 500, H = 180 + LEGEND_H, MARGIN_LEFT = 8, MARGIN_BOTTOM = 24, MARGIN_TOP = LEGEND_H
   const chartH = H - MARGIN_BOTTOM - MARGIN_TOP
   const n = rounds.length
   const gap = 4
@@ -51,6 +52,14 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB }: {
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ overflow: 'visible' }}>
+      {/* Legend above bars */}
+      <g transform="translate(0, 4)">
+        <rect width={10} height={10} fill={colorA} rx={2} />
+        <text x={14} y={9} fontSize={9} fill="var(--muted)" fontFamily="system-ui">{teamA}</text>
+        <rect x={W / 2} width={10} height={10} fill={colorB} rx={2} />
+        <text x={W / 2 + 14} y={9} fontSize={9} fill="var(--muted)" fontFamily="system-ui">{teamB}</text>
+      </g>
+
       {rounds.map((r, i) => {
         const total = r.votesA + r.votesB + r.votesNeutral || 1
         const hA = (r.votesA / total) * chartH
@@ -59,37 +68,24 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB }: {
         const winA = r.votesA > r.votesB
         const winB = r.votesB > r.votesA
         const labelX = x + barW / 2
+        const labelColor = winA ? colorA : winB ? colorB : 'var(--gold)'
 
         return (
           <g key={r.id}>
             {/* Team B bar (top) */}
             <rect x={x} y={MARGIN_TOP + chartH - hA - hB} width={barW} height={hB}
-              fill={colorB} rx={winB ? 3 : 1} />
+              fill={colorB} rx={1} />
             {/* Team A bar (bottom) */}
             <rect x={x} y={MARGIN_TOP + chartH - hA} width={barW} height={hA}
-              fill={colorA} rx={winA ? 3 : 1} />
-            {/* Winner dot */}
-            <circle
-              cx={labelX}
-              cy={winA ? MARGIN_TOP + chartH - hA - 6 : MARGIN_TOP + chartH - hA - hB - 6}
-              r={3}
-              fill={winA ? colorA : winB ? colorB : 'var(--gold)'}
-            />
-            {/* X label */}
+              fill={colorA} rx={1} />
+            {/* X label colored by winner */}
             <text x={labelX} y={H - 4} textAnchor="middle"
-              fontSize={9} fill="var(--muted)" fontFamily="system-ui">
+              fontSize={9} fill={labelColor} fontWeight={700} fontFamily="system-ui">
               M{i + 1}
             </text>
           </g>
         )
       })}
-      {/* Legend */}
-      <g transform={`translate(${W - 120}, 2)`}>
-        <rect width={10} height={10} fill={colorA} rx={2} />
-        <text x={14} y={9} fontSize={9} fill="var(--muted)" fontFamily="system-ui">{teamA}</text>
-        <rect y={14} width={10} height={10} fill={colorB} rx={2} />
-        <text x={14} y={23} fontSize={9} fill="var(--muted)" fontFamily="system-ui">{teamB}</text>
-      </g>
     </svg>
   )
 }
