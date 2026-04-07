@@ -165,7 +165,7 @@ export default function Vote() {
         </p>
         <h1 className="font-black tracking-tight" style={{ fontSize: '1.5rem', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
           <span style={{ color: 'var(--team-a)' }}>{session.teamA}</span>
-          {' '}<span style={{ color: 'var(--muted)', fontWeight: 400, fontSize: '1rem' }}>vs</span>{' '}
+          {' '}<span style={{ color: 'var(--muted)', fontWeight: 400, fontSize: '1rem', fontStyle: 'italic' }}>vs</span>{' '}
           <span style={{ color: 'var(--team-b)' }}>{session.teamB}</span>
         </h1>
       </div>
