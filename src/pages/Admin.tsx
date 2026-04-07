@@ -310,7 +310,7 @@ const copyLink = useCallback(() => {
       )}
 
       {/* Stats */}
-      {session.status === 'finished' && session.rounds.filter(r => r.status === 'closed').length > 0 && (
+      {session.rounds.filter(r => r.status === 'closed').length > 0 && (
         <div className="mb-4">
           <MatchStats session={session} />
         </div>

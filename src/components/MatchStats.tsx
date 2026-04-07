@@ -44,7 +44,7 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB }: {
   rounds: Round[]; colorA: string; colorB: string; teamA: string; teamB: string
 }) {
   const LEGEND_H = 28
-  const W = 500, H = 180 + LEGEND_H, MARGIN_LEFT = 8, MARGIN_BOTTOM = 24, MARGIN_TOP = LEGEND_H
+  const W = 500, H = 200 + LEGEND_H, MARGIN_LEFT = 8, MARGIN_BOTTOM = 24, MARGIN_TOP = LEGEND_H + 12
   const chartH = H - MARGIN_BOTTOM - MARGIN_TOP
   const n = rounds.length
   const gap = 4
@@ -64,11 +64,14 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB }: {
         const total = r.votesA + r.votesB + r.votesNeutral || 1
         const hA = (r.votesA / total) * chartH
         const hB = (r.votesB / total) * chartH
+        const pctA = Math.round((r.votesA / total) * 100)
+        const pctB = Math.round((r.votesB / total) * 100)
         const x = MARGIN_LEFT + i * (barW + gap)
         const winA = r.votesA > r.votesB
         const winB = r.votesB > r.votesA
         const labelX = x + barW / 2
         const labelColor = winA ? colorA : winB ? colorB : 'var(--gold)'
+        const showInner = barW >= 20
 
         return (
           <g key={r.id}>
@@ -78,6 +81,24 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB }: {
             {/* Team A bar (bottom) */}
             <rect x={x} y={MARGIN_TOP + chartH - hA} width={barW} height={hA}
               fill={colorA} rx={1} />
+            {/* % inside bars if tall enough */}
+            {showInner && hA > 16 && (
+              <text x={labelX} y={MARGIN_TOP + chartH - hA / 2 + 4} textAnchor="middle"
+                fontSize={8} fill="rgba(255,255,255,0.85)" fontWeight={700} fontFamily="system-ui">
+                {pctA}%
+              </text>
+            )}
+            {showInner && hB > 16 && (
+              <text x={labelX} y={MARGIN_TOP + chartH - hA - hB / 2 + 4} textAnchor="middle"
+                fontSize={8} fill="rgba(255,255,255,0.85)" fontWeight={700} fontFamily="system-ui">
+                {pctB}%
+              </text>
+            )}
+            {/* vote counts above bars */}
+            <text x={labelX} y={MARGIN_TOP + chartH - hA - hB - 3} textAnchor="middle"
+              fontSize={8} fill="var(--muted)" fontFamily="system-ui">
+              {total}v
+            </text>
             {/* X label colored by winner */}
             <text x={labelX} y={H - 4} textAnchor="middle"
               fontSize={9} fill={labelColor} fontWeight={700} fontFamily="system-ui">
