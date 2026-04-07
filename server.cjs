@@ -16,13 +16,15 @@ const io = new Server(server, {
 const sessions = new Map()  // sessionId → session object
 const tokens = new Map()    // sessionId → admin token
 
-function createRound(duration) {
+function createRound(duration, allowNeutral) {
   const now = Date.now()
   return {
     id: randomUUID().slice(0, 8),
     votesA: 0,
     votesB: 0,
-    voters: new Map(), // voterId → 'A' | 'B'
+    votesNeutral: 0,
+    allowNeutral: !!allowNeutral,
+    voters: new Map(), // voterId → 'A' | 'B' | 'neutral'
     status: 'voting',
     duration,
     startTime: now,
@@ -104,7 +106,7 @@ io.on('connection', (socket) => {
   })
 
   // Admin: start a new voting round
-  socket.on('startRound', ({ sessionId, duration, token }) => {
+  socket.on('startRound', ({ sessionId, duration, token, allowNeutral }) => {
     const session = sessions.get(sessionId)
     if (!session) return
     if (tokens.get(sessionId) !== token) {
@@ -119,7 +121,7 @@ io.on('connection', (socket) => {
       closeRound(session, last)
     }
 
-    const round = createRound(Number(duration) || 60)
+    const round = createRound(Number(duration) || 60, allowNeutral)
     session.rounds.push(round)
 
     // Auto-close when time expires
@@ -131,7 +133,7 @@ io.on('connection', (socket) => {
     broadcastSession(sessionId)
   })
 
-  // Admin: manually end the current round
+  // Admin: manually close the current round (keep in history)
   socket.on('endRound', ({ sessionId, token }) => {
     const session = sessions.get(sessionId)
     if (!session) return
@@ -144,7 +146,24 @@ io.on('connection', (socket) => {
     }
   })
 
-  // Audience: cast or change a vote
+  // Admin: cancel the current round entirely (remove from history)
+  socket.on('cancelRound', ({ sessionId, token }) => {
+    const session = sessions.get(sessionId)
+    if (!session) return
+    if (tokens.get(sessionId) !== token) return
+
+    const round = session.rounds[session.rounds.length - 1]
+    if (round && round.status === 'voting') {
+      if (round.timerHandle) {
+        clearTimeout(round.timerHandle)
+        round.timerHandle = null
+      }
+      session.rounds.pop()
+      broadcastSession(sessionId)
+    }
+  })
+
+  // Audience: cast, change, or remove a vote
   socket.on('vote', ({ sessionId, team, voterId }) => {
     const session = sessions.get(sessionId)
     if (!session) return
@@ -155,17 +174,25 @@ io.on('connection', (socket) => {
       return
     }
 
-    const previous = round.voters.get(voterId)
-    if (previous === team) return // Same team, nothing to do
+    // team === null means unvote
+    if (team === 'neutral' && !round.allowNeutral) return
 
-    // Cancel previous vote if any
+    const previous = round.voters.get(voterId)
+    if (previous === team) return // no change
+
+    // Remove previous vote
     if (previous === 'A') round.votesA--
     else if (previous === 'B') round.votesB--
+    else if (previous === 'neutral') round.votesNeutral--
 
-    // Register new vote
-    round.voters.set(voterId, team)
-    if (team === 'A') round.votesA++
-    else if (team === 'B') round.votesB++
+    if (team === null) {
+      round.voters.delete(voterId)
+    } else {
+      round.voters.set(voterId, team)
+      if (team === 'A') round.votesA++
+      else if (team === 'B') round.votesB++
+      else if (team === 'neutral') round.votesNeutral++
+    }
 
     socket.emit('voteConfirmed', { team })
     broadcastSession(sessionId)

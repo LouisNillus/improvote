@@ -1,7 +1,11 @@
+export type VoteTeam = 'A' | 'B' | 'neutral' | null
+
 export interface Round {
   id: string
   votesA: number
   votesB: number
+  votesNeutral: number
+  allowNeutral: boolean
   voterCount: number
   status: 'voting' | 'closed'
   duration: number
