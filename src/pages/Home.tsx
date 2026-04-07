@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react'
+import { useState, useEffect, useRef, useCallback, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const PALETTE = [
@@ -8,30 +8,100 @@ const PALETTE = [
   '#2dd4bf', '#22d3ee', '#94a3b8', '#e2e8f0',
 ]
 
-function ColorPicker({ value, onChange, exclude }: { value: string; onChange: (c: string) => void; exclude?: string }) {
+const RADIUS = 62
+
+function RadialColorPicker({ value, onChange, exclude }: {
+  value: string; onChange: (c: string) => void; exclude?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const [closing, setClosing] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const close = useCallback(() => {
+    setClosing(true)
+    setTimeout(() => { setOpen(false); setClosing(false) }, 220)
+  }, [])
+
+  const toggle = useCallback(() => {
+    if (open) close(); else setOpen(true)
+  }, [open, close])
+
+  useEffect(() => {
+    if (!open || closing) return
+    const handler = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) close()
+    }
+    setTimeout(() => document.addEventListener('mousedown', handler), 0)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open, closing, close])
+
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-      {PALETTE.map(color => {
-        const selected = value === color
-        const disabled = color === exclude
+    <div ref={containerRef} style={{ position: 'relative', width: 36, height: 36, flexShrink: 0, zIndex: open ? 50 : 1 }}>
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={toggle}
+        style={{
+          width: 36, height: 36,
+          borderRadius: '50%',
+          background: value,
+          border: open ? '3px solid rgba(255,255,255,0.95)' : '2px solid rgba(255,255,255,0.25)',
+          cursor: 'pointer',
+          boxShadow: `0 0 ${open ? 22 : 8}px ${value}${open ? 'dd' : '70'}`,
+          transition: 'box-shadow 0.25s, border 0.2s, transform 0.2s',
+          transform: open ? 'scale(1.15)' : 'scale(1)',
+          position: 'relative',
+          zIndex: 2,
+        }}
+      />
+
+      {/* Backdrop to catch outside clicks */}
+      {open && !closing && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 1 }}
+          onMouseDown={close}
+        />
+      )}
+
+      {/* Swatches */}
+      {(open || closing) && PALETTE.map((color, i) => {
+        const angle = (i / PALETTE.length) * 2 * Math.PI - Math.PI / 2
+        const sx = Math.cos(angle) * RADIUS
+        const sy = Math.sin(angle) * RADIUS
+        const isExcluded = color === exclude
+        const isSelected = color === value
+
         return (
           <button
             key={color}
             type="button"
-            onClick={() => !disabled && onChange(color)}
+            onMouseDown={e => {
+              e.stopPropagation()
+              if (!isExcluded) { onChange(color); close() }
+            }}
+            className={closing ? 'swatch-out' : 'swatch-in'}
             style={{
-              width: 30, height: 30,
+              position: 'absolute',
+              top: '50%', left: '50%',
+              width: isSelected ? 32 : 27,
+              height: isSelected ? 32 : 27,
               borderRadius: '50%',
               background: color,
-              border: selected ? '3px solid white' : '2px solid transparent',
-              outline: selected ? `3px solid ${color}` : 'none',
-              outlineOffset: 1,
-              opacity: disabled ? 0.2 : 1,
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              transition: 'transform 0.1s, outline 0.1s',
-              transform: selected ? 'scale(1.15)' : 'scale(1)',
-              flexShrink: 0,
-            }}
+              border: isSelected
+                ? '3px solid white'
+                : isExcluded
+                  ? '2px solid rgba(255,255,255,0.1)'
+                  : '2px solid rgba(255,255,255,0.18)',
+              cursor: isExcluded ? 'not-allowed' : 'pointer',
+              opacity: isExcluded ? 0.2 : 1,
+              boxShadow: isSelected ? `0 0 12px ${color}cc, 0 0 4px white` : `0 2px 8px rgba(0,0,0,0.4)`,
+              zIndex: 10,
+              '--sx': `${sx}px`,
+              '--sy': `${sy}px`,
+              animationDelay: closing
+                ? `${(PALETTE.length - 1 - i) * 10}ms`
+                : `${i * 20}ms`,
+            } as React.CSSProperties}
           />
         )
       })}
@@ -93,6 +163,7 @@ export default function Home() {
   return (
     <div className="min-h-screen spotlight-bg flex flex-col items-center justify-center p-6 gap-6">
       <div className="w-full max-w-md fade-in">
+
         {/* Logo */}
         <div className="text-center mb-8">
           <div style={{ fontSize: '3.5rem', lineHeight: 1, marginBottom: 12 }}>🎭</div>
@@ -132,16 +203,18 @@ export default function Home() {
         </div>
 
         {/* Create match */}
-        <form onSubmit={handleCreate} className="card p-5 flex flex-col gap-5">
+        <form onSubmit={handleCreate} className="card p-5 flex flex-col gap-5" style={{ overflow: 'visible' }}>
           <h2 className="font-bold text-sm" style={{ color: 'var(--muted)' }}>Nouveau match</h2>
 
           {/* Team A */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2" style={{ position: 'relative' }}>
             <label className="text-xs font-semibold" style={{ color: colorA }}>Équipe A</label>
-            <input className="input" placeholder="Nom de l'équipe A" value={teamA}
-              onChange={e => setTeamA(e.target.value)} maxLength={40}
-              style={{ borderColor: `${colorA}60` }} />
-            <ColorPicker value={colorA} onChange={setColorA} exclude={colorB} />
+            <div className="flex items-center gap-3">
+              <RadialColorPicker value={colorA} onChange={setColorA} exclude={colorB} />
+              <input className="input flex-1" placeholder="Nom de l'équipe A" value={teamA}
+                onChange={e => setTeamA(e.target.value)} maxLength={40}
+                style={{ borderColor: `${colorA}55` }} />
+            </div>
           </div>
 
           <div className="vs-divider gap-3">
@@ -151,12 +224,14 @@ export default function Home() {
           </div>
 
           {/* Team B */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2" style={{ position: 'relative' }}>
             <label className="text-xs font-semibold" style={{ color: colorB }}>Équipe B</label>
-            <input className="input" placeholder="Nom de l'équipe B" value={teamB}
-              onChange={e => setTeamB(e.target.value)} maxLength={40}
-              style={{ borderColor: `${colorB}60` }} />
-            <ColorPicker value={colorB} onChange={setColorB} exclude={colorA} />
+            <div className="flex items-center gap-3">
+              <RadialColorPicker value={colorB} onChange={setColorB} exclude={colorA} />
+              <input className="input flex-1" placeholder="Nom de l'équipe B" value={teamB}
+                onChange={e => setTeamB(e.target.value)} maxLength={40}
+                style={{ borderColor: `${colorB}55` }} />
+            </div>
           </div>
 
           {createError && (
@@ -166,10 +241,13 @@ export default function Home() {
             </p>
           )}
 
-          <button type="submit" className="btn btn-primary w-full" style={{ padding: '13px', fontSize: '1rem', background: colorA }} disabled={creating}>
+          <button type="submit" className="btn w-full"
+            style={{ padding: '13px', fontSize: '1rem', background: colorA, color: '#fff', fontWeight: 700 }}
+            disabled={creating}>
             {creating ? 'Création...' : '🎬 Créer le match'}
           </button>
         </form>
+
       </div>
     </div>
   )
