@@ -1,17 +1,9 @@
 export type VoteTeam = 'A' | 'B' | 'neutral' | null
 
-export type SimulationPattern =
-  | 'balanced'
-  | 'tight'
-  | 'teamA_dominant'
-  | 'teamB_dominant'
-  | 'teamA_comeback'
-  | 'teamB_comeback'
-
+// values[i] ∈ [-1, 1] : -1 = 100% team A, +1 = 100% team B, 0 = 50/50
 export interface SimulationConfig {
   voterCount: number
-  roundCount: number
-  pattern: SimulationPattern
+  values: number[]  // one per round
 }
 
 export interface Round {

@@ -118,57 +118,20 @@ app.get('/api/code/:code', (req, res) => {
 })
 
 // ─── Simulation ──────────────────────────────────────────────────────────────
-function clamp(v, min, max) { return Math.max(min, Math.min(max, v)) }
-
-function getDistribution(i, total, pattern) {
-  const noise = () => (Math.random() - 0.5) * 0.08
-  const mid = Math.floor(total / 2)
-  switch (pattern) {
-    case 'teamA_dominant': {
-      const base = clamp(0.65 + noise(), 0.54, 0.82)
-      return { pctA: base, pctB: 1 - base }
-    }
-    case 'teamB_dominant': {
-      const base = clamp(0.65 + noise(), 0.54, 0.82)
-      return { pctA: 1 - base, pctB: base }
-    }
-    case 'teamA_comeback': {
-      const base = clamp(0.63 + noise(), 0.54, 0.78)
-      return i < mid
-        ? { pctA: 1 - base, pctB: base }
-        : { pctA: base, pctB: 1 - base }
-    }
-    case 'teamB_comeback': {
-      const base = clamp(0.63 + noise(), 0.54, 0.78)
-      return i < mid
-        ? { pctA: base, pctB: 1 - base }
-        : { pctA: 1 - base, pctB: base }
-    }
-    case 'tight': {
-      const base = clamp(0.50 + noise() * 0.4, 0.44, 0.56)
-      return { pctA: base, pctB: 1 - base }
-    }
-    case 'balanced':
-    default: {
-      const base = clamp(0.60 + noise(), 0.53, 0.70)
-      return i % 2 === 0
-        ? { pctA: base, pctB: 1 - base }
-        : { pctA: 1 - base, pctB: base }
-    }
-  }
-}
-
-function generateSimulatedRounds(voterCount, roundCount, pattern) {
+// values[i] ∈ [-1, 1] : -1 = 100% A, 0 = 50/50, +1 = 100% B
+function generateSimulatedRounds(voterCount, values) {
   const rounds = []
-  for (let i = 0; i < roundCount; i++) {
-    const { pctA, pctB } = getDistribution(i, roundCount, pattern)
-    const votesA = Math.round(voterCount * pctA)
-    const votesB = voterCount - votesA
+  for (let i = 0; i < values.length; i++) {
+    const v = Math.max(-1, Math.min(1, values[i]))
+    // pctB = (v + 1) / 2  →  0 when v=-1 (all A), 1 when v=1 (all B)
+    const pctB = (v + 1) / 2
+    const votesB = Math.round(voterCount * pctB)
+    const votesA = voterCount - votesB
     const voters = new Map()
-    for (let v = 0; v < voterCount; v++) {
-      voters.set(`sim_${i}_${v}`, v < votesA ? 'A' : 'B')
+    for (let k = 0; k < voterCount; k++) {
+      voters.set(`sim_${i}_${k}`, k < votesA ? 'A' : 'B')
     }
-    const ts = Date.now() - (roundCount - i) * 90_000
+    const ts = Date.now() - (values.length - i) * 90_000
     rounds.push({
       id: randomUUID().slice(0, 8),
       votesA, votesB, votesNeutral: 0,
@@ -300,23 +263,18 @@ io.on('connection', (socket) => {
   })
 
   // Admin: run a simulation
-  socket.on('runSimulation', ({ sessionId, token, voterCount, roundCount, pattern }) => {
-    console.log('[runSimulation]', { sessionId, voterCount, roundCount, pattern })
+  socket.on('runSimulation', ({ sessionId, token, voterCount, values }) => {
     const session = sessions.get(sessionId)
-    if (!session) { console.log('[runSimulation] session not found'); return }
-    if (tokens.get(sessionId) !== token) { console.log('[runSimulation] invalid token'); socket.emit('error', { message: 'Token invalide pour la simulation.' }); return }
+    if (!session) return
+    if (tokens.get(sessionId) !== token) { socket.emit('error', { message: 'Token invalide pour la simulation.' }); return }
 
-    // Close any active round first
     const last = session.rounds[session.rounds.length - 1]
     if (last && last.status === 'voting') closeRound(session, last)
 
-    // Replace all rounds with simulated ones
     session.rounds = generateSimulatedRounds(
       Math.max(1, Math.min(100, voterCount || 20)),
-      Math.max(1, Math.min(10, roundCount || 5)),
-      pattern || 'balanced'
+      values || []
     )
-    console.log('[runSimulation] generated', session.rounds.length, 'rounds')
     broadcastSession(sessionId)
   })
 

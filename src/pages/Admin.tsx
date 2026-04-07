@@ -90,7 +90,7 @@ export default function Admin() {
   }, [id, token])
 
   const runSimulation = useCallback((config: SimulationConfig) => {
-    socketRef.current.emit('runSimulation', { sessionId: id, token, ...config })
+    socketRef.current.emit('runSimulation', { sessionId: id, token, voterCount: config.voterCount, values: config.values })
   }, [id, token])
 
 const copyLink = useCallback(() => {
@@ -299,7 +299,14 @@ const copyLink = useCallback(() => {
 
       {/* Simulation panel */}
       {session.status === 'active' && (
-        <SimulationPanel onRun={runSimulation} hasRounds={session.rounds.length > 0} />
+        <SimulationPanel
+          onRun={runSimulation}
+          hasRounds={session.rounds.length > 0}
+          colorA={session.colorA}
+          colorB={session.colorB}
+          teamA={session.teamA}
+          teamB={session.teamB}
+        />
       )}
 
       {/* Stats */}
