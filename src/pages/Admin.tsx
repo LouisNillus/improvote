@@ -191,9 +191,10 @@ const copyLink = useCallback(() => {
         {/* QR Code */}
         <div className="card p-5 flex flex-col gap-3">
           <h2 className="font-bold text-xs uppercase tracking-widest" style={{ color: 'var(--muted)' }}>QR Code public</h2>
-          <div className="flex items-center justify-center rounded-xl p-3" style={{ background: '#fff' }}>
+          <a href={voteUrl} target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center rounded-xl p-3" style={{ background: '#fff', display: 'flex', cursor: 'pointer' }}>
             <QRCodeSVG value={voteUrl} size={180} level="M" />
-          </div>
+          </a>
           {/* Code d'accès */}
           <div className="flex flex-col items-center gap-1 rounded-xl py-3 px-4"
             style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
