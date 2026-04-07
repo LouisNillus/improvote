@@ -179,7 +179,7 @@ export default function Vote() {
               <div className="font-black text-2xl" style={{ color: 'var(--team-a)' }}>{session.scoreA}</div>
               <div className="text-xs" style={{ color: 'var(--muted)' }}>{session.teamA}</div>
             </div>
-            <div className="text-xs font-bold" style={{ color: 'var(--muted)' }}>tours gagnés</div>
+            <div className="text-xs font-bold" style={{ color: 'var(--muted)' }}>manches gagnées</div>
             <div className="text-center">
               <div className="font-black text-2xl" style={{ color: 'var(--team-b)' }}>{session.scoreB}</div>
               <div className="text-xs" style={{ color: 'var(--muted)' }}>{session.teamB}</div>
@@ -283,10 +283,10 @@ export default function Vote() {
           <div className="flex-1 flex flex-col gap-4 fade-in">
             <div className="text-center">
               <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>
-                Tour {session.rounds.length} — Résultat
+                Manche {session.rounds.length} — Résultat
               </p>
-              {roundWinnerA && <p className="font-black text-lg" style={{ color: 'var(--team-a)' }}>🏆 {session.teamA} remporte ce tour !</p>}
-              {roundWinnerB && <p className="font-black text-lg" style={{ color: 'var(--team-b)' }}>🏆 {session.teamB} remporte ce tour !</p>}
+              {roundWinnerA && <p className="font-black text-lg" style={{ color: 'var(--team-a)' }}>🏆 {session.teamA} remporte cette manche !</p>}
+              {roundWinnerB && <p className="font-black text-lg" style={{ color: 'var(--team-b)' }}>🏆 {session.teamB} remporte cette manche !</p>}
               {!roundWinnerA && !roundWinnerB && total > 0 && <p className="font-black text-lg" style={{ color: 'var(--gold)' }}>⚖️ Égalité parfaite !</p>}
             </div>
             <LiveResults session={session} round={currentRound}

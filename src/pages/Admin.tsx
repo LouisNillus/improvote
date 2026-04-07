@@ -169,7 +169,7 @@ const copyLink = useCallback(() => {
           <span className="font-black text-lg" style={{ color: 'var(--team-a)' }}>{session.scoreA}</span>
           <span style={{ color: 'var(--muted)', fontSize: '0.75rem' }}>–</span>
           <span className="font-black text-lg" style={{ color: 'var(--team-b)' }}>{session.scoreB}</span>
-          <span className="text-xs ml-auto" style={{ color: 'var(--muted)' }}>{closedRounds.length} tour{closedRounds.length > 1 ? 's' : ''} joué{closedRounds.length > 1 ? 's' : ''}</span>
+          <span className="text-xs ml-auto" style={{ color: 'var(--muted)' }}>{closedRounds.length} manche{closedRounds.length > 1 ? 's' : ''} jouée{closedRounds.length > 1 ? 's' : ''}</span>
         </div>
       )}
 
@@ -281,7 +281,7 @@ const copyLink = useCallback(() => {
                   color: '#f74f6a'
                 }}>⏹ Stopper</button>
                 <button className="btn btn-ghost flex-1 text-sm" onClick={cancelRound}
-                  title="Annuler ce tour et l'effacer de l'historique">
+                  title="Annuler cette manche et l'effacer de l'historique">
                   🗑 Annuler
                 </button>
               </div>
@@ -309,7 +309,7 @@ const copyLink = useCallback(() => {
               return (
                 <div key={round.id} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm flex-wrap"
                   style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-                  <span className="font-bold text-xs w-12 shrink-0" style={{ color: 'var(--muted)' }}>Tour {idx}</span>
+                  <span className="font-bold text-xs w-12 shrink-0" style={{ color: 'var(--muted)' }}>Manche {idx}</span>
                   <span className="text-xs shrink-0" style={{ color: 'var(--muted)' }}>{round.duration}s · {total}v</span>
                   <div className="flex-1 flex items-center gap-2 min-w-0">
                     <span style={{ color: 'var(--team-a)', fontWeight: winA ? 800 : 400 }}>
