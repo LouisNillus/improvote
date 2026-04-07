@@ -55,10 +55,10 @@ function RadialColorPicker({ value, onChange, exclude }: {
         }}
       />
 
-      {/* Backdrop to catch outside clicks */}
+      {/* Backdrop — grise le reste + attrape les clics extérieurs */}
       {open && !closing && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 1 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 1, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)', transition: 'opacity 0.2s' }}
           onMouseDown={close}
         />
       )}
@@ -241,8 +241,8 @@ export default function Home() {
             </p>
           )}
 
-          <button type="submit" className="btn w-full"
-            style={{ padding: '13px', fontSize: '1rem', background: colorA, color: '#fff', fontWeight: 700 }}
+          <button type="submit" className="btn btn-primary w-full"
+            style={{ padding: '13px', fontSize: '1rem' }}
             disabled={creating}>
             {creating ? 'Création...' : '🎬 Créer le match'}
           </button>
