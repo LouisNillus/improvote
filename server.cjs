@@ -58,6 +58,7 @@ function serializeSession(session) {
 function broadcastSession(sessionId) {
   const session = sessions.get(sessionId)
   if (session) {
+    session.lastActivity = Date.now()
     io.to(sessionId).emit('sessionUpdate', serializeSession(session))
   }
 }
@@ -243,6 +244,25 @@ io.on('connection', (socket) => {
     broadcastSession(sessionId)
   })
 })
+
+// ─── Session cleanup ─────────────────────────────────────────────────────────
+const FINISHED_TTL = 2 * 60 * 60 * 1000   // 2h après la fin
+const ACTIVE_TTL   = 24 * 60 * 60 * 1000  // 24h sans activité
+
+setInterval(() => {
+  const now = Date.now()
+  for (const [id, session] of sessions) {
+    const lastActivity = session.lastActivity || session.createdAt
+    const isStale =
+      (session.status === 'finished' && now - lastActivity > FINISHED_TTL) ||
+      (now - lastActivity > ACTIVE_TTL)
+    if (isStale) {
+      codes.delete(session.code)
+      tokens.delete(id)
+      sessions.delete(id)
+    }
+  }
+}, 60 * 60 * 1000) // toutes les heures
 
 // ─── Static files (production) ───────────────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
