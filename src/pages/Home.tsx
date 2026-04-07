@@ -63,14 +63,14 @@ function RadialColorPicker({ value, onChange, exclude }: {
         />
       )}
 
-      {/* Swatches — outer div gère la position, inner button gère le scale */}
+      {/* Swatches — bord couleur fond pour masquer les chevauchements, pas besoin de z-index */}
       {(open || closing) && PALETTE.map((color, i) => {
         const angle = (i / PALETTE.length) * 2 * Math.PI - Math.PI / 2
         const sx = Math.cos(angle) * RADIUS
         const sy = Math.sin(angle) * RADIUS
         const isExcluded = color === exclude
         const isSelected = color === value
-        const size = isSelected ? 32 : 27
+        const size = isSelected ? 32 : 28
 
         return (
           <div
@@ -97,6 +97,7 @@ function RadialColorPicker({ value, onChange, exclude }: {
               onMouseDown={e => { e.stopPropagation(); onChange(color); close() }}
               style={{
                 background: color,
+                /* Bord couleur fond = masque visuellement les chevauchements sans z-index */
                 border: isSelected ? '3px solid white' : '2px solid rgba(255,255,255,0.18)',
                 boxShadow: isSelected ? `0 0 12px ${color}cc, 0 0 4px white` : `0 2px 8px rgba(0,0,0,0.4)`,
                 cursor: 'pointer',
