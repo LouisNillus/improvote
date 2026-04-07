@@ -22,7 +22,7 @@ function createRound(duration) {
     id: randomUUID().slice(0, 8),
     votesA: 0,
     votesB: 0,
-    voters: new Set(),
+    voters: new Map(), // voterId → 'A' | 'B'
     status: 'voting',
     duration,
     startTime: now,
@@ -37,7 +37,9 @@ function serializeSession(session) {
     rounds: session.rounds.map(({ timerHandle, voters, ...r }) => ({
       ...r,
       voterCount: voters.size
-    }))
+    })),
+    scoreA: session.rounds.filter(r => r.status === 'closed' && r.votesA > r.votesB).length,
+    scoreB: session.rounds.filter(r => r.status === 'closed' && r.votesB > r.votesA).length
   }
 }
 
@@ -142,7 +144,7 @@ io.on('connection', (socket) => {
     }
   })
 
-  // Audience: cast a vote
+  // Audience: cast or change a vote
   socket.on('vote', ({ sessionId, team, voterId }) => {
     const session = sessions.get(sessionId)
     if (!session) return
@@ -152,12 +154,16 @@ io.on('connection', (socket) => {
       socket.emit('voteError', { message: 'Aucun vote en cours.' })
       return
     }
-    if (round.voters.has(voterId)) {
-      socket.emit('alreadyVoted', {})
-      return
-    }
 
-    round.voters.add(voterId)
+    const previous = round.voters.get(voterId)
+    if (previous === team) return // Same team, nothing to do
+
+    // Cancel previous vote if any
+    if (previous === 'A') round.votesA--
+    else if (previous === 'B') round.votesB--
+
+    // Register new vote
+    round.voters.set(voterId, team)
     if (team === 'A') round.votesA++
     else if (team === 'B') round.votesB++
 

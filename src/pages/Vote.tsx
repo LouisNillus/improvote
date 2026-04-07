@@ -94,20 +94,21 @@ export default function Vote() {
   }, [id])
 
   const castVote = useCallback((team: 'A' | 'B') => {
-    if (!id || voteStatus !== 'idle') return
+    if (!id) return
+    // Allow changing vote during active round, but not after it closes
+    const round = session?.rounds[session.rounds.length - 1]
+    if (!round || round.status !== 'voting') return
+    if (myTeam === team) return // already voted for this team
+
     const voterId = getOrCreateVoterId(id)
-    const socket = socketRef.current
 
     // Optimistic local update
     setMyTeam(team)
     setVoteStatus('voted')
-
-    // Save locally so it persists on reload
-    const round = session?.rounds[session.rounds.length - 1]
     if (round) saveVotedTeam(id, round.id, team)
 
-    socket.emit('vote', { sessionId: id, team, voterId })
-  }, [id, voteStatus, session])
+    socketRef.current.emit('vote', { sessionId: id, team, voterId })
+  }, [id, myTeam, session])
 
   if (error) {
     return (
@@ -162,6 +163,21 @@ export default function Vote() {
       {/* Main content */}
       <div className="flex-1 flex flex-col px-4 pb-8 gap-4">
 
+        {/* Score du match */}
+        {(session.scoreA > 0 || session.scoreB > 0) && (
+          <div className="card-sm px-5 py-3 flex items-center justify-center gap-4 fade-in">
+            <div className="text-center">
+              <div className="font-black text-2xl" style={{ color: 'var(--team-a)' }}>{session.scoreA}</div>
+              <div className="text-xs" style={{ color: 'var(--muted)' }}>{session.teamA}</div>
+            </div>
+            <div className="text-xs font-bold" style={{ color: 'var(--muted)' }}>tours gagnés</div>
+            <div className="text-center">
+              <div className="font-black text-2xl" style={{ color: 'var(--team-b)' }}>{session.scoreB}</div>
+              <div className="text-xs" style={{ color: 'var(--muted)' }}>{session.teamB}</div>
+            </div>
+          </div>
+        )}
+
         {/* Status bar */}
         <div className="flex justify-center">
           {session.status === 'finished' ? (
@@ -212,54 +228,44 @@ export default function Vote() {
         )}
 
         {/* Vote area */}
-        {isVoting && voteStatus === 'idle' ? (
-          /* Big vote buttons */
+        {isVoting ? (
+          /* Vote buttons — toujours visibles, changement possible */
           <div className="flex flex-col gap-3 flex-1 fade-in">
             <p className="text-center text-sm font-semibold" style={{ color: 'var(--muted)' }}>
-              Tapez pour voter !
+              {voteStatus === 'idle' ? 'Tapez pour voter !' : 'Vous pouvez changer votre vote'}
             </p>
-            <div className="grid grid-cols-2 gap-3 flex-1">
+            <div className="grid grid-cols-2 gap-3" style={{ flex: '0 0 auto' }}>
               <button
-                className={`vote-btn vote-btn-a`}
+                className={`vote-btn vote-btn-a${myTeam === 'A' ? ' voted' : ''}`}
                 onClick={() => castVote('A')}
               >
+                {myTeam === 'A' && <span style={{ fontSize: '1.2rem', position: 'absolute', top: 10, right: 12 }}>✅</span>}
                 <span style={{ fontSize: '2.5rem', lineHeight: 1, marginBottom: 8 }}>🔵</span>
                 <span className="text-center px-2" style={{ fontSize: '1.15rem', lineHeight: 1.2, fontWeight: 800 }}>
                   {session.teamA}
                 </span>
               </button>
               <button
-                className={`vote-btn vote-btn-b`}
+                className={`vote-btn vote-btn-b${myTeam === 'B' ? ' voted' : ''}`}
                 onClick={() => castVote('B')}
               >
+                {myTeam === 'B' && <span style={{ fontSize: '1.2rem', position: 'absolute', top: 10, right: 12 }}>✅</span>}
                 <span style={{ fontSize: '2.5rem', lineHeight: 1, marginBottom: 8 }}>🔴</span>
                 <span className="text-center px-2" style={{ fontSize: '1.15rem', lineHeight: 1.2, fontWeight: 800 }}>
                   {session.teamB}
                 </span>
               </button>
             </div>
-          </div>
-        ) : isVoting && voteStatus === 'voted' ? (
-          /* Already voted — show results live */
-          <div className="flex-1 flex flex-col gap-4 fade-in">
-            <div
-              className="text-center text-sm font-bold rounded-xl p-3"
-              style={{
-                background: myTeam === 'A' ? 'rgba(79,142,247,0.1)' : 'rgba(247,79,106,0.1)',
-                color: myTeam === 'A' ? 'var(--team-a)' : 'var(--team-b)',
-                border: `1px solid ${myTeam === 'A' ? 'rgba(79,142,247,0.3)' : 'rgba(247,79,106,0.3)'}`
-              }}
-            >
-              ✅ Voté pour {myTeam === 'A' ? session.teamA : session.teamB}
-            </div>
-            <LiveResults
-              session={session}
-              round={currentRound}
-              pctA={pctA}
-              pctB={pctB}
-              totalVotes={totalVotes}
-              myTeam={myTeam}
-            />
+            {voteStatus === 'voted' && currentRound && (
+              <LiveResults
+                session={session}
+                round={currentRound}
+                pctA={pctA}
+                pctB={pctB}
+                totalVotes={totalVotes}
+                myTeam={myTeam}
+              />
+            )}
           </div>
         ) : currentRound?.status === 'closed' ? (
           /* Round over */

@@ -16,4 +16,6 @@ export interface Session {
   rounds: Round[]
   status: 'active' | 'finished'
   createdAt: number
+  scoreA: number
+  scoreB: number
 }

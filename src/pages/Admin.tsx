@@ -371,7 +371,7 @@ export default function Admin() {
       )}
 
       {/* Score tally */}
-      {session.rounds.filter(r => r.status === 'closed').length > 1 && (
+      {session.rounds.filter(r => r.status === 'closed').length > 0 && (
         <ScoreTally session={session} />
       )}
     </div>
@@ -380,11 +380,8 @@ export default function Admin() {
 
 function ScoreTally({ session }: { session: Session }) {
   const closed = session.rounds.filter(r => r.status === 'closed')
-  let scoreA = 0, scoreB = 0
-  for (const r of closed) {
-    if (r.votesA > r.votesB) scoreA++
-    else if (r.votesB > r.votesA) scoreB++
-  }
+  const scoreA = session.scoreA ?? 0
+  const scoreB = session.scoreB ?? 0
 
   return (
     <div className="card p-5 mt-4 fade-in">
