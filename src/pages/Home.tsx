@@ -63,10 +63,10 @@ function RadialColorPicker({ value, onChange, exclude }: {
         />
       )}
 
-      {/* Swatches — bord couleur fond pour masquer les chevauchements, pas besoin de z-index */}
+      {/* Swatches — décalage vers la droite pour éviter le crop sur mobile */}
       {(open || closing) && PALETTE.map((color, i) => {
         const angle = (i / PALETTE.length) * 2 * Math.PI - Math.PI / 2
-        const sx = Math.cos(angle) * RADIUS
+        const sx = Math.cos(angle) * RADIUS + RADIUS * 0.7  // offset X
         const sy = Math.sin(angle) * RADIUS
         const isExcluded = color === exclude
         const isSelected = color === value
