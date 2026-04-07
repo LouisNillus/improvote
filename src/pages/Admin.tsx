@@ -111,7 +111,6 @@ const copyLink = useCallback(() => {
   const pctB = totalVotesActive > 0 ? Math.round((currentRound!.votesB / totalVotesActive) * 100) : 0
   const pctN = totalVotesActive > 0 ? Math.round((currentRound!.votesNeutral / totalVotesActive) * 100) : 0
 
-  const activeDuration = customDuration ? Number(customDuration) : duration
   const closedRounds = session.rounds.filter(r => r.status === 'closed')
 
   return (
