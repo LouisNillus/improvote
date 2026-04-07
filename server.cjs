@@ -103,6 +103,8 @@ app.post('/api/sessions', (req, res) => {
   res.json({ session: serializeSession(session), token })
 })
 
+app.get('/health', (_req, res) => res.json({ ok: true }))
+
 app.get('/api/sessions/:id', (req, res) => {
   const session = sessions.get(req.params.id)
   if (!session) return res.status(404).json({ error: 'Session introuvable.' })
