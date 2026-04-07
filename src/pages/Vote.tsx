@@ -163,10 +163,10 @@ export default function Vote() {
         <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>
           🎭 Match d'impro
         </p>
-        <h1 className="flex items-center font-black tracking-tight" style={{ fontSize: '1.5rem', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
-          <span className="flex-1 text-center" style={{ color: 'var(--team-a)' }}>{session.teamA}</span>
-          <span style={{ color: 'var(--muted)', fontWeight: 400, fontSize: '1rem', fontStyle: 'italic', flexShrink: 0, padding: '0 8px' }}>vs</span>
-          <span className="flex-1 text-center" style={{ color: 'var(--team-b)' }}>{session.teamB}</span>
+        <h1 className="font-black tracking-tight" style={{ fontSize: '1.5rem', lineHeight: 1.2, letterSpacing: '-0.02em' }}>
+          <span style={{ color: 'var(--team-a)' }}>{session.teamA}</span>
+          {' '}<span style={{ color: 'var(--muted)', fontWeight: 400, fontSize: '1rem' }}>vs</span>{' '}
+          <span style={{ color: 'var(--team-b)' }}>{session.teamB}</span>
         </h1>
       </div>
 
@@ -179,7 +179,7 @@ export default function Vote() {
               <div className="font-black text-2xl" style={{ color: 'var(--team-a)' }}>{session.scoreA}</div>
               <div className="text-xs" style={{ color: 'var(--muted)' }}>{session.teamA}</div>
             </div>
-            <div style={{ color: 'var(--muted)', fontStyle: 'italic', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0, padding: '0 8px' }}>vs</div>
+            <div className="text-xs font-bold" style={{ color: 'var(--muted)' }}>vs</div>
             <div className="flex-1 flex flex-col items-center">
               <div className="font-black text-2xl" style={{ color: 'var(--team-b)' }}>{session.scoreB}</div>
               <div className="text-xs" style={{ color: 'var(--muted)' }}>{session.teamB}</div>
