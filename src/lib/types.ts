@@ -24,6 +24,7 @@ export interface Session {
   locked: boolean
   code: string
   createdAt: number
+  lastActivity: number
   scoreA: number
   scoreB: number
 }

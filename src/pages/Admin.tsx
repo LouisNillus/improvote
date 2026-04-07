@@ -4,6 +4,15 @@ import { QRCodeSVG } from 'qrcode.react'
 import { getSocket } from '../lib/socket'
 import type { Session, Round } from '../lib/types'
 
+function formatExpiry(lastActivity: number, now: number): string {
+  const ms = (lastActivity + 2 * 60 * 60 * 1000) - now
+  if (ms <= 0) return 'bientôt'
+  const h = Math.floor(ms / 3600000)
+  const m = Math.ceil((ms % 3600000) / 60000)
+  if (h > 0) return `${h}h${m > 0 ? String(m).padStart(2, '0') : ''}`
+  return `${m} min`
+}
+
 function copyText(text: string) {
   if (navigator.clipboard && window.isSecureContext) {
     return navigator.clipboard.writeText(text)
@@ -165,9 +174,14 @@ const copyLink = useCallback(() => {
       )}
 
       {session.status === 'finished' && (
-        <div className="mb-3 text-sm text-center rounded-xl p-3 font-semibold"
+        <div className="mb-3 text-sm text-center rounded-xl p-3 font-semibold flex items-center justify-center gap-3"
           style={{ background: 'rgba(247,201,79,0.1)', color: 'var(--gold)', border: '1px solid rgba(247,201,79,0.2)' }}>
           Match terminé
+          {session.lastActivity && (
+            <span className="font-normal text-xs" style={{ color: 'var(--muted)' }}>
+              · Session supprimée dans {formatExpiry(session.lastActivity, now)}
+            </span>
+          )}
         </div>
       )}
 

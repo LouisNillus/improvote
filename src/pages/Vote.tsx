@@ -296,7 +296,7 @@ export default function Vote() {
           </div>
 
         ) : session.status === 'finished' ? (
-          <MatchOver session={session} />
+          <MatchOver session={session} now={now} />
 
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 fade-in">
@@ -364,7 +364,16 @@ function ResultBar({ label, votes, pct, color, isMyVote, isWinner }: {
   )
 }
 
-function MatchOver({ session }: { session: Session }) {
+function formatExpiry(lastActivity: number, now: number): string {
+  const ms = (lastActivity + 2 * 60 * 60 * 1000) - now
+  if (ms <= 0) return 'bientôt'
+  const h = Math.floor(ms / 3600000)
+  const m = Math.ceil((ms % 3600000) / 60000)
+  if (h > 0) return `${h}h${m > 0 ? String(m).padStart(2, '0') : ''}`
+  return `${m} min`
+}
+
+function MatchOver({ session, now }: { session: Session; now: number }) {
   const scoreA = session.scoreA ?? 0
   const scoreB = session.scoreB ?? 0
   const teamWon = scoreA > scoreB ? session.teamA : scoreB > scoreA ? session.teamB : null
@@ -391,6 +400,11 @@ function MatchOver({ session }: { session: Session }) {
           <div className="text-xs mt-1" style={{ color: 'var(--team-b)' }}>{session.teamB}</div>
         </div>
       </div>
+      {session.lastActivity && (
+        <p className="text-xs" style={{ color: 'var(--muted)' }}>
+          Session supprimée dans {formatExpiry(session.lastActivity, now)}
+        </p>
+      )}
     </div>
   )
 }
