@@ -39,7 +39,7 @@ function FlagDisplay({ country, size = 20 }: { country: Country; size?: number }
   if (country.flagImg) {
     const w = Math.round(size * 1.15)
     const h = Math.round(w * 0.67)
-    return <img src={country.flag} alt={country.name} style={{ width: w, height: h, objectFit: 'cover', borderRadius: 5, flexShrink: 0 }} />
+    return <img src={country.flag} alt={country.name} style={{ width: w, height: h, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }} />
   }
   return <span style={{ fontSize: size * 0.075 + 'rem' }}>{country.flag}</span>
 }
