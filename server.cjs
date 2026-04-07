@@ -73,7 +73,7 @@ function closeRound(session, round) {
 
 // ─── REST API ────────────────────────────────────────────────────────────────
 app.post('/api/sessions', (req, res) => {
-  const { teamA, teamB } = req.body
+  const { teamA, teamB, colorA, colorB } = req.body
   if (!teamA?.trim() || !teamB?.trim()) {
     return res.status(400).json({ error: 'Les deux noms d\'équipes sont requis.' })
   }
@@ -86,6 +86,8 @@ app.post('/api/sessions', (req, res) => {
     id,
     teamA: teamA.trim(),
     teamB: teamB.trim(),
+    colorA: colorA || '#4f8ef7',
+    colorB: colorB || '#f74f6a',
     rounds: [],
     status: 'active',
     locked: false,

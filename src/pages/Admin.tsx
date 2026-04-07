@@ -118,7 +118,8 @@ const copyLink = useCallback(() => {
   const closedRounds = session.rounds.filter(r => r.status === 'closed')
 
   return (
-    <div className="min-h-screen spotlight-bg p-4 pb-8" style={{ maxWidth: 900, margin: '0 auto' }}>
+    <div className="min-h-screen spotlight-bg p-4 pb-8"
+      style={{ maxWidth: 900, margin: '0 auto', '--team-a': session.colorA, '--team-b': session.colorB } as React.CSSProperties}>
       {/* Header */}
       <div className="fade-in pt-4 pb-3 flex items-center justify-between gap-4 flex-wrap">
         <div>

@@ -18,6 +18,8 @@ export interface Session {
   teamA: string
   teamB: string
   rounds: Round[]
+  colorA: string
+  colorB: string
   status: 'active' | 'finished'
   locked: boolean
   code: string

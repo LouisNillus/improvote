@@ -1,11 +1,51 @@
 import { useState, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+const PALETTE = [
+  '#4f8ef7', '#38bdf8', '#818cf8', '#a855f7',
+  '#e879f9', '#f472b6', '#f74f6a', '#fb923c',
+  '#fbbf24', '#a3e635', '#4fc978', '#34d399',
+  '#2dd4bf', '#22d3ee', '#94a3b8', '#e2e8f0',
+]
+
+function ColorPicker({ value, onChange, exclude }: { value: string; onChange: (c: string) => void; exclude?: string }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {PALETTE.map(color => {
+        const selected = value === color
+        const disabled = color === exclude
+        return (
+          <button
+            key={color}
+            type="button"
+            onClick={() => !disabled && onChange(color)}
+            style={{
+              width: 30, height: 30,
+              borderRadius: '50%',
+              background: color,
+              border: selected ? '3px solid white' : '2px solid transparent',
+              outline: selected ? `3px solid ${color}` : 'none',
+              outlineOffset: 1,
+              opacity: disabled ? 0.2 : 1,
+              cursor: disabled ? 'not-allowed' : 'pointer',
+              transition: 'transform 0.1s, outline 0.1s',
+              transform: selected ? 'scale(1.15)' : 'scale(1)',
+              flexShrink: 0,
+            }}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
 export default function Home() {
   const navigate = useNavigate()
 
   const [teamA, setTeamA] = useState('')
   const [teamB, setTeamB] = useState('')
+  const [colorA, setColorA] = useState('#4f8ef7')
+  const [colorB, setColorB] = useState('#f74f6a')
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState('')
 
@@ -22,7 +62,7 @@ export default function Home() {
       const res = await fetch('/api/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamA: teamA.trim(), teamB: teamB.trim() })
+        body: JSON.stringify({ teamA: teamA.trim(), teamB: teamB.trim(), colorA, colorB })
       })
       if (!res.ok) throw new Error((await res.json()).error)
       const { session, token } = await res.json()
@@ -81,26 +121,27 @@ export default function Home() {
               {joining ? '...' : '→'}
             </button>
           </div>
-          {joinError && (
-            <p className="text-xs" style={{ color: 'var(--team-b)' }}>{joinError}</p>
-          )}
+          {joinError && <p className="text-xs" style={{ color: 'var(--team-b)' }}>{joinError}</p>}
         </form>
 
         {/* Divider */}
-        <div className="vs-divider gap-3 mb-4" style={{ color: 'var(--muted)' }}>
+        <div className="vs-divider gap-3 mb-4">
           <span className="flex-1" style={{ borderTop: '1px solid var(--border)' }} />
-          <span className="text-xs">ou créer un match</span>
+          <span className="text-xs" style={{ color: 'var(--muted)' }}>ou créer un match</span>
           <span className="flex-1" style={{ borderTop: '1px solid var(--border)' }} />
         </div>
 
         {/* Create match */}
-        <form onSubmit={handleCreate} className="card p-5 flex flex-col gap-4">
+        <form onSubmit={handleCreate} className="card p-5 flex flex-col gap-5">
           <h2 className="font-bold text-sm" style={{ color: 'var(--muted)' }}>Nouveau match</h2>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold" style={{ color: 'var(--team-a)' }}>Équipe A</label>
+          {/* Team A */}
+          <div className="flex flex-col gap-3">
+            <label className="text-xs font-semibold" style={{ color: colorA }}>Équipe A</label>
             <input className="input" placeholder="Nom de l'équipe A" value={teamA}
-              onChange={e => setTeamA(e.target.value)} maxLength={40} />
+              onChange={e => setTeamA(e.target.value)} maxLength={40}
+              style={{ borderColor: `${colorA}60` }} />
+            <ColorPicker value={colorA} onChange={setColorA} exclude={colorB} />
           </div>
 
           <div className="vs-divider gap-3">
@@ -109,10 +150,13 @@ export default function Home() {
             <span className="flex-1" style={{ borderTop: '1px solid var(--border)' }} />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold" style={{ color: 'var(--team-b)' }}>Équipe B</label>
+          {/* Team B */}
+          <div className="flex flex-col gap-3">
+            <label className="text-xs font-semibold" style={{ color: colorB }}>Équipe B</label>
             <input className="input" placeholder="Nom de l'équipe B" value={teamB}
-              onChange={e => setTeamB(e.target.value)} maxLength={40} />
+              onChange={e => setTeamB(e.target.value)} maxLength={40}
+              style={{ borderColor: `${colorB}60` }} />
+            <ColorPicker value={colorB} onChange={setColorB} exclude={colorA} />
           </div>
 
           {createError && (
@@ -122,7 +166,7 @@ export default function Home() {
             </p>
           )}
 
-          <button type="submit" className="btn btn-primary w-full" style={{ padding: '13px', fontSize: '1rem' }} disabled={creating}>
+          <button type="submit" className="btn btn-primary w-full" style={{ padding: '13px', fontSize: '1rem', background: colorA }} disabled={creating}>
             {creating ? 'Création...' : '🎬 Créer le match'}
           </button>
         </form>

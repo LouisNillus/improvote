@@ -151,7 +151,8 @@ export default function Vote() {
   const roundWinnerB = currentRound?.status === 'closed' && currentRound.votesB > currentRound.votesA
 
   return (
-    <div className="min-h-screen spotlight-bg flex flex-col" style={{ maxWidth: 480, margin: '0 auto' }}>
+    <div className="min-h-screen spotlight-bg flex flex-col"
+      style={{ maxWidth: 480, margin: '0 auto', '--team-a': session.colorA, '--team-b': session.colorB } as React.CSSProperties}>
       {/* Header */}
       <div className="px-5 pt-6 pb-3 text-center fade-in">
         <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>
