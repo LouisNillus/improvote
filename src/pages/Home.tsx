@@ -81,7 +81,7 @@ function RadialColorPicker({ value, onChange, exclude }: {
               position: 'absolute',
               top: '50%', left: '50%',
               width: size, height: size,
-              zIndex: 10,
+              zIndex: PALETTE.length - i,
               '--sx': `${sx}px`,
               '--sy': `${sy}px`,
               animationDelay: closing
