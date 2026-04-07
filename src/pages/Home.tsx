@@ -21,11 +21,11 @@ interface Country {
 
 const COUNTRIES: Country[] = [
   { code: 'FR', name: 'France',     flag: '🇫🇷', primary: '#4f8ef7', secondary: '#e84139' },
-  { code: 'BE', name: 'Belgique',   flag: '🇧🇪', primary: '#f5c400', secondary: '#e84139' },
-  { code: 'LU', name: 'Luxembourg', flag: '🇱🇺', primary: '#ef4135', secondary: '#38bdf8' },
-  { code: 'MC', name: 'Monaco',     flag: '🇲🇨', primary: '#ce1126', secondary: '#94a3b8' },
-  { code: 'CH', name: 'Suisse',     flag: '🇨🇭', primary: '#ff3333', secondary: '#94a3b8' },
-  { code: 'QC', name: 'Québec',     flag: '/flags/quebec.jpg', flagImg: true, primary: '#3B5BC8', secondary: '#ce1126' },
+  { code: 'BE', name: 'Belgique',   flag: '🇧🇪', primary: '#e84139', secondary: '#f5c400' },
+  { code: 'LU', name: 'Luxembourg', flag: '🇱🇺', primary: '#38bdf8', secondary: '#ef4135' },
+  { code: 'MC', name: 'Monaco',     flag: '🇲🇨', primary: '#ce1126', secondary: '#e2e8f0' },
+  { code: 'CH', name: 'Suisse',     flag: '🇨🇭', primary: '#ff3333', secondary: '#e2e8f0' },
+  { code: 'QC', name: 'Québec',     flag: '/flags/quebec.jpg', flagImg: true, primary: '#3B5BC8', secondary: '#e2e8f0' },
   { code: 'MA', name: 'Maroc',      flag: '🇲🇦', primary: '#c1272d', secondary: '#22c55e' },
 ]
 
