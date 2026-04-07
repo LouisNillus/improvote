@@ -51,7 +51,7 @@ function RadialColorPicker({ value, onChange, exclude }: {
           transition: 'box-shadow 0.25s, border 0.2s, transform 0.2s',
           transform: open ? 'scale(1.15)' : 'scale(1)',
           position: 'relative',
-          zIndex: 2,
+          zIndex: 20,
         }}
       />
 
@@ -63,10 +63,12 @@ function RadialColorPicker({ value, onChange, exclude }: {
         />
       )}
 
-      {/* Swatches — décalage vers la droite pour éviter le crop sur mobile */}
+      {/* Swatches — le bouton est le point gauche du cercle, tout s'étale à droite */}
       {(open || closing) && PALETTE.map((color, i) => {
-        const angle = (i / PALETTE.length) * 2 * Math.PI - Math.PI / 2
-        const sx = Math.cos(angle) * RADIUS + RADIUS * 0.7  // offset X
+        const selectedIdx = PALETTE.indexOf(value)
+        // Centre du cercle décalé à droite du bouton → le bouton = point gauche (angle π)
+        const angle = Math.PI + ((i - selectedIdx) / PALETTE.length) * 2 * Math.PI
+        const sx = RADIUS + Math.cos(angle) * RADIUS   // toujours 0..2*RADIUS (jamais à gauche)
         const sy = Math.sin(angle) * RADIUS
         const isExcluded = color === exclude
         const isSelected = color === value
