@@ -310,7 +310,7 @@ const copyLink = useCallback(() => {
               return (
                 <div key={round.id} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm flex-wrap"
                   style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-                  <span className="font-bold text-xs w-12 shrink-0" style={{ color: 'var(--muted)' }}>Manche {idx}</span>
+                  <span className="font-bold text-xs shrink-0 whitespace-nowrap" style={{ color: 'var(--muted)' }}>Manche {idx}</span>
                   <span className="text-xs shrink-0" style={{ color: 'var(--muted)' }}>{round.duration}s · {total}v</span>
                   <div className="flex-1 flex items-center gap-2 min-w-0">
                     <span style={{ color: 'var(--team-a)', fontWeight: winA ? 800 : 400 }}>
