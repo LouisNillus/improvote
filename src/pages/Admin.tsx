@@ -141,7 +141,11 @@ const copyLink = useCallback(() => {
             </button>
           )}
           {session.status === 'active' && (
-            <button className="btn btn-danger text-sm" onClick={endSession}>Terminer</button>
+            <button className="btn text-sm" onClick={endSession} style={{
+              background: 'rgba(247,79,106,0.15)',
+              border: '1px solid rgba(247,79,106,0.4)',
+              color: '#f74f6a'
+            }}>Terminer</button>
           )}
           {session.status === 'finished' && (
             <a href="/" className="btn btn-success text-sm">↺ Nouveau match</a>
@@ -204,7 +208,7 @@ const copyLink = useCallback(() => {
                 </div>
                 <input type="range" min={5} max={60} step={1} value={duration}
                   onChange={e => setDuration(Number(e.target.value))}
-                  style={{ width: '100%', accentColor: 'var(--team-a)', cursor: 'pointer' }} />
+                  style={{ width: '100%', accentColor: 'var(--gold)', cursor: 'pointer' }} />
                 <div className="flex justify-between text-xs" style={{ color: 'var(--muted)' }}>
                   <span>5s</span><span>60s</span>
                 </div>
@@ -257,7 +261,11 @@ const copyLink = useCallback(() => {
               </div>
 
               <div className="flex gap-2">
-                <button className="btn btn-danger flex-1" onClick={endRound}>⏹ Stopper</button>
+                <button className="btn flex-1" onClick={endRound} style={{
+                  background: 'rgba(247,79,106,0.15)',
+                  border: '1px solid rgba(247,79,106,0.4)',
+                  color: '#f74f6a'
+                }}>⏹ Stopper</button>
                 <button className="btn btn-ghost flex-1 text-sm" onClick={cancelRound}
                   title="Annuler ce tour et l'effacer de l'historique">
                   🗑 Annuler

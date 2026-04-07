@@ -42,6 +42,7 @@ export default function Vote() {
   const [myTeam, setMyTeam] = useState<VoteTeam>(null)
   const [now, setNow] = useState(Date.now())
   const socketRef = useRef(getSocket())
+  const hasAccessRef = useRef(!!id && localStorage.getItem(`access_${id}`) === '1')
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 200)
@@ -55,6 +56,10 @@ export default function Vote() {
     socket.emit('subscribe', { sessionId: id })
 
     socket.on('sessionUpdate', (data: Session) => {
+      if (!data.locked) {
+        hasAccessRef.current = true
+        if (id) localStorage.setItem(`access_${id}`, '1')
+      }
       setSession(data)
       const round = data.rounds[data.rounds.length - 1]
       if (round) {
@@ -124,7 +129,7 @@ export default function Vote() {
     )
   }
 
-  if (session.locked) {
+  if (session.locked && !hasAccessRef.current) {
     return (
       <div className="min-h-screen spotlight-bg flex flex-col items-center justify-center gap-4 p-6 text-center">
         <div style={{ fontSize: '3rem' }}>🔒</div>
@@ -225,15 +230,13 @@ export default function Vote() {
             {/* Team buttons */}
             <div className="grid grid-cols-2 gap-3">
               <button className={`vote-btn vote-btn-a${myTeam === 'A' ? ' voted' : ''}`} onClick={() => sendVote('A')}>
-                {myTeam === 'A' && <span style={{ fontSize: '1.1rem', position: 'absolute', top: 10, right: 12 }}>✅</span>}
-                <span style={{ fontSize: '2.2rem', lineHeight: 1, marginBottom: 8 }}>🔵</span>
+                <span style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--team-a)', marginBottom: 8, flexShrink: 0, boxShadow: '0 0 12px var(--team-a)' }} />
                 <span className="text-center px-2" style={{ fontSize: '1.1rem', lineHeight: 1.2, fontWeight: 800 }}>
                   {session.teamA}
                 </span>
               </button>
               <button className={`vote-btn vote-btn-b${myTeam === 'B' ? ' voted' : ''}`} onClick={() => sendVote('B')}>
-                {myTeam === 'B' && <span style={{ fontSize: '1.1rem', position: 'absolute', top: 10, right: 12 }}>✅</span>}
-                <span style={{ fontSize: '2.2rem', lineHeight: 1, marginBottom: 8 }}>🔴</span>
+                <span style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--team-b)', marginBottom: 8, flexShrink: 0, boxShadow: '0 0 12px var(--team-b)' }} />
                 <span className="text-center px-2" style={{ fontSize: '1.1rem', lineHeight: 1.2, fontWeight: 800 }}>
                   {session.teamB}
                 </span>
@@ -258,7 +261,6 @@ export default function Vote() {
                 }}
                 onClick={() => sendVote('neutral')}
               >
-                {myTeam === 'neutral' && <span>✅</span>}
                 <span>⚪</span>
                 <span>Vote neutre</span>
               </button>
@@ -291,9 +293,6 @@ export default function Vote() {
             </div>
             <LiveResults session={session} round={currentRound}
               pctA={pctA} pctB={pctB} pctN={pctN} total={total} myTeam={myTeam} showWinner />
-            {session.status === 'active' && (
-              <p className="text-xs text-center mt-2" style={{ color: 'var(--muted)' }}>Attendez le prochain vote...</p>
-            )}
           </div>
 
         ) : session.status === 'finished' ? (
