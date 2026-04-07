@@ -79,12 +79,7 @@ export default function Admin() {
     socketRef.current.emit('endSession', { sessionId: id, token })
   }, [id, token])
 
-  const resetSession = useCallback(() => {
-    if (!confirm('Relancer le match ? Tout l\'historique sera effacé.')) return
-    socketRef.current.emit('resetSession', { sessionId: id, token })
-  }, [id, token])
-
-  const copyLink = useCallback(() => {
+const copyLink = useCallback(() => {
     copyText(voteUrl).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -141,7 +136,7 @@ export default function Admin() {
             <button className="btn btn-danger text-sm" onClick={endSession}>Terminer le match</button>
           )}
           {session.status === 'finished' && (
-            <button className="btn btn-success text-sm" onClick={resetSession}>↺ Relancer le match</button>
+            <a href="/" className="btn btn-success text-sm">↺ Nouveau match</a>
           )}
         </div>
       </div>
