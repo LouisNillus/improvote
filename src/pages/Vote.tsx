@@ -258,10 +258,11 @@ export default function Vote() {
               </button>
             )}
 
-            {/* Live results when voted */}
-            {myTeam !== null && currentRound && (
-              <LiveResults session={session} round={currentRound}
-                pctA={pctA} pctB={pctB} pctN={pctN} total={total} myTeam={myTeam} />
+            {/* Confirmation discrète — pas de résultats avant la fin */}
+            {myTeam !== null && (
+              <p className="text-center text-xs" style={{ color: 'var(--muted)' }}>
+                Les résultats seront affichés à la fin du vote.
+              </p>
             )}
           </div>
 
