@@ -198,6 +198,21 @@ io.on('connection', (socket) => {
     broadcastSession(sessionId)
   })
 
+  // Admin: reset session (replay with same teams)
+  socket.on('resetSession', ({ sessionId, token }) => {
+    const session = sessions.get(sessionId)
+    if (!session) return
+    if (tokens.get(sessionId) !== token) return
+
+    // Clear all rounds and reactivate
+    for (const r of session.rounds) {
+      if (r.timerHandle) clearTimeout(r.timerHandle)
+    }
+    session.rounds = []
+    session.status = 'active'
+    broadcastSession(sessionId)
+  })
+
   // Admin: end the entire session
   socket.on('endSession', ({ sessionId, token }) => {
     const session = sessions.get(sessionId)

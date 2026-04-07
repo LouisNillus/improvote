@@ -79,6 +79,11 @@ export default function Admin() {
     socketRef.current.emit('endSession', { sessionId: id, token })
   }, [id, token])
 
+  const resetSession = useCallback(() => {
+    if (!confirm('Relancer le match ? Tout l\'historique sera effacé.')) return
+    socketRef.current.emit('resetSession', { sessionId: id, token })
+  }, [id, token])
+
   const copyLink = useCallback(() => {
     copyText(voteUrl).then(() => {
       setCopied(true)
@@ -134,6 +139,9 @@ export default function Admin() {
         <div className="flex gap-2 flex-wrap">
           {session.status === 'active' && (
             <button className="btn btn-danger text-sm" onClick={endSession}>Terminer le match</button>
+          )}
+          {session.status === 'finished' && (
+            <button className="btn btn-success text-sm" onClick={resetSession}>↺ Relancer le match</button>
           )}
         </div>
       </div>
