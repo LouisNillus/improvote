@@ -296,7 +296,7 @@ export default function Vote() {
           </div>
 
         ) : session.status === 'finished' ? (
-          <MatchOver session={session} now={now} />
+          <MatchOver session={session} />
 
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 fade-in">
@@ -306,6 +306,13 @@ export default function Vote() {
               L'organisateur va lancer une phase de vote. Tenez votre téléphone prêt !
             </p>
           </div>
+        )}
+
+        {/* Expiry banner — always visible when session is finished */}
+        {session.status === 'finished' && session.lastActivity && (
+          <p className="text-xs text-center pb-2" style={{ color: 'var(--muted)' }}>
+            Session supprimée dans {formatExpiry(session.lastActivity, now)}
+          </p>
         )}
       </div>
     </div>
@@ -373,7 +380,7 @@ function formatExpiry(lastActivity: number, now: number): string {
   return `${m} min`
 }
 
-function MatchOver({ session, now }: { session: Session; now: number }) {
+function MatchOver({ session }: { session: Session }) {
   const scoreA = session.scoreA ?? 0
   const scoreB = session.scoreB ?? 0
   const teamWon = scoreA > scoreB ? session.teamA : scoreB > scoreA ? session.teamB : null
@@ -400,11 +407,6 @@ function MatchOver({ session, now }: { session: Session; now: number }) {
           <div className="text-xs mt-1" style={{ color: 'var(--team-b)' }}>{session.teamB}</div>
         </div>
       </div>
-      {session.lastActivity && (
-        <p className="text-xs" style={{ color: 'var(--muted)' }}>
-          Session supprimée dans {formatExpiry(session.lastActivity, now)}
-        </p>
-      )}
     </div>
   )
 }
