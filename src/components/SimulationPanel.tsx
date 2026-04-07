@@ -20,11 +20,12 @@ export default function SimulationPanel({ onRun, hasRounds }: Props) {
   const [voterCount, setVoterCount] = useState(20)
   const [roundCount, setRoundCount] = useState(5)
   const [pattern, setPattern] = useState<SimulationPattern>('balanced')
+  const [running, setRunning] = useState(false)
 
   function run() {
-    if (hasRounds && !confirm(`Cette simulation remplacera les ${hasRounds ? 'manches existantes' : ''}. Continuer ?`)) return
+    setRunning(true)
     onRun({ voterCount, roundCount, pattern })
-    setOpen(false)
+    setTimeout(() => { setRunning(false); setOpen(false) }, 800)
   }
 
   return (
@@ -103,10 +104,16 @@ export default function SimulationPanel({ onRun, hasRounds }: Props) {
             </p>
           </div>
 
+          {hasRounds && (
+            <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
+              ⚠️ Remplacera les manches existantes
+            </p>
+          )}
           <button
             type="button"
             className="btn w-full"
             onClick={run}
+            disabled={running}
             style={{
               background: 'rgba(247,201,79,0.12)',
               border: '1px solid rgba(247,201,79,0.4)',
@@ -114,7 +121,7 @@ export default function SimulationPanel({ onRun, hasRounds }: Props) {
               padding: '12px',
             }}
           >
-            ▶ Lancer la simulation
+            {running ? '⏳ Génération...' : '▶ Lancer la simulation'}
           </button>
         </div>
       )}
