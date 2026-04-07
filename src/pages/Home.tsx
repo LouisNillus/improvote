@@ -87,7 +87,7 @@ function RadialColorPicker({ value, onChange, exclude }: {
               animationDelay: closing
                 ? `${(PALETTE.length - 1 - i) * 10}ms`
                 : `${i * 20}ms`,
-              opacity: isExcluded ? 0.2 : 1,
+              opacity: 1,
               pointerEvents: isExcluded ? 'none' : 'auto',
             } as React.CSSProperties}
           >
@@ -97,10 +97,12 @@ function RadialColorPicker({ value, onChange, exclude }: {
               onMouseDown={e => { e.stopPropagation(); onChange(color); close() }}
               style={{
                 background: color,
-                /* Bord couleur fond = masque visuellement les chevauchements sans z-index */
+                background: isExcluded
+                  ? `repeating-linear-gradient(45deg, ${color} 0px, ${color} 4px, #1a1f2e 4px, #1a1f2e 8px)`
+                  : color,
                 border: isSelected ? '3px solid white' : '2px solid rgba(255,255,255,0.18)',
                 boxShadow: isSelected ? `0 0 12px ${color}cc, 0 0 4px white` : `0 2px 8px rgba(0,0,0,0.4)`,
-                cursor: 'pointer',
+                cursor: isExcluded ? 'not-allowed' : 'pointer',
               }}
             />
           </div>
