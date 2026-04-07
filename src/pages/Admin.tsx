@@ -69,6 +69,10 @@ export default function Admin() {
     socketRef.current.emit('cancelRound', { sessionId: id, token })
   }, [id, token])
 
+  const toggleLock = useCallback(() => {
+    socketRef.current.emit('toggleLock', { sessionId: id, token })
+  }, [id, token])
+
   const endSession = useCallback(() => {
     if (!confirm('Terminer le match définitivement ?')) return
     socketRef.current.emit('endSession', { sessionId: id, token })
@@ -127,7 +131,16 @@ const copyLink = useCallback(() => {
         </div>
         <div className="flex gap-2 flex-wrap">
           {session.status === 'active' && (
-            <button className="btn btn-danger text-sm" onClick={endSession}>Terminer le match</button>
+            <button className="btn text-sm" onClick={toggleLock} style={{
+              background: session.locked ? 'rgba(247,201,79,0.12)' : 'var(--surface-2)',
+              border: `1px solid ${session.locked ? 'rgba(247,201,79,0.4)' : 'var(--border)'}`,
+              color: session.locked ? 'var(--gold)' : 'var(--muted)'
+            }}>
+              {session.locked ? '🔒 Accès fermé' : '🔓 Accès ouvert'}
+            </button>
+          )}
+          {session.status === 'active' && (
+            <button className="btn btn-danger text-sm" onClick={endSession}>Terminer</button>
           )}
           {session.status === 'finished' && (
             <a href="/" className="btn btn-success text-sm">↺ Nouveau match</a>

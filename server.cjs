@@ -77,6 +77,7 @@ app.post('/api/sessions', (req, res) => {
     teamB: teamB.trim(),
     rounds: [],
     status: 'active',
+    locked: false,
     createdAt: Date.now()
   }
 
@@ -198,7 +199,16 @@ io.on('connection', (socket) => {
     broadcastSession(sessionId)
   })
 
-// Admin: end the entire session
+  // Admin: toggle session lock
+  socket.on('toggleLock', ({ sessionId, token }) => {
+    const session = sessions.get(sessionId)
+    if (!session) return
+    if (tokens.get(sessionId) !== token) return
+    session.locked = !session.locked
+    broadcastSession(sessionId)
+  })
+
+  // Admin: end the entire session
   socket.on('endSession', ({ sessionId, token }) => {
     const session = sessions.get(sessionId)
     if (!session) return

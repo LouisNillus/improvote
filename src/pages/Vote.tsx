@@ -124,6 +124,18 @@ export default function Vote() {
     )
   }
 
+  if (session.locked) {
+    return (
+      <div className="min-h-screen spotlight-bg flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <div style={{ fontSize: '3rem' }}>🔒</div>
+        <h2 className="text-xl font-black">Accès fermé</h2>
+        <p style={{ color: 'var(--muted)', maxWidth: 260 }}>
+          L'organisateur a temporairement fermé l'accès au vote. Revenez dans un moment.
+        </p>
+      </div>
+    )
+  }
+
   const currentRound = session.rounds[session.rounds.length - 1] as Round | undefined
   const isVoting = currentRound?.status === 'voting'
   const remainingMs = isVoting ? Math.max(0, currentRound.endTime - now) : 0
