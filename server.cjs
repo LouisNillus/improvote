@@ -301,9 +301,10 @@ io.on('connection', (socket) => {
 
   // Admin: run a simulation
   socket.on('runSimulation', ({ sessionId, token, voterCount, roundCount, pattern }) => {
+    console.log('[runSimulation]', { sessionId, voterCount, roundCount, pattern })
     const session = sessions.get(sessionId)
-    if (!session) return
-    if (tokens.get(sessionId) !== token) return
+    if (!session) { console.log('[runSimulation] session not found'); return }
+    if (tokens.get(sessionId) !== token) { console.log('[runSimulation] invalid token'); socket.emit('error', { message: 'Token invalide pour la simulation.' }); return }
 
     // Close any active round first
     const last = session.rounds[session.rounds.length - 1]
@@ -315,6 +316,7 @@ io.on('connection', (socket) => {
       Math.max(1, Math.min(10, roundCount || 5)),
       pattern || 'balanced'
     )
+    console.log('[runSimulation] generated', session.rounds.length, 'rounds')
     broadcastSession(sessionId)
   })
 
