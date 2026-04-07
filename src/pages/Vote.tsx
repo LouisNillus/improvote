@@ -173,7 +173,7 @@ export default function Vote() {
       <div className="flex-1 flex flex-col px-4 pb-8 gap-4">
 
         {/* Score */}
-        {(session.scoreA > 0 || session.scoreB > 0) && (
+        {session.rounds.some(r => r.status === 'closed') && (
           <div className="card-sm px-5 py-3 flex items-center justify-center gap-4 fade-in">
             <div className="text-center">
               <div className="font-black text-2xl" style={{ color: 'var(--team-a)' }}>{session.scoreA}</div>
