@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { getSocket } from '../lib/socket'
 import type { Session, Round, VoteTeam } from '../lib/types'
+import MatchStats from '../components/MatchStats'
 
 function generateId(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -398,6 +399,9 @@ function MatchOver({ session }: { session: Session }) {
           <div className="font-black text-3xl" style={{ color: 'var(--team-b)' }}>{scoreB}</div>
           <div className="text-xs mt-1" style={{ color: 'var(--team-b)' }}>{session.teamB}</div>
         </div>
+      </div>
+      <div className="w-full">
+        <MatchStats session={session} />
       </div>
     </div>
   )

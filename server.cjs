@@ -117,6 +117,73 @@ app.get('/api/code/:code', (req, res) => {
   res.json({ sessionId })
 })
 
+// ─── Simulation ──────────────────────────────────────────────────────────────
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)) }
+
+function getDistribution(i, total, pattern) {
+  const noise = () => (Math.random() - 0.5) * 0.08
+  const mid = Math.floor(total / 2)
+  switch (pattern) {
+    case 'teamA_dominant': {
+      const base = clamp(0.65 + noise(), 0.54, 0.82)
+      return { pctA: base, pctB: 1 - base }
+    }
+    case 'teamB_dominant': {
+      const base = clamp(0.65 + noise(), 0.54, 0.82)
+      return { pctA: 1 - base, pctB: base }
+    }
+    case 'teamA_comeback': {
+      const base = clamp(0.63 + noise(), 0.54, 0.78)
+      return i < mid
+        ? { pctA: 1 - base, pctB: base }
+        : { pctA: base, pctB: 1 - base }
+    }
+    case 'teamB_comeback': {
+      const base = clamp(0.63 + noise(), 0.54, 0.78)
+      return i < mid
+        ? { pctA: base, pctB: 1 - base }
+        : { pctA: 1 - base, pctB: base }
+    }
+    case 'tight': {
+      const base = clamp(0.50 + noise() * 0.4, 0.44, 0.56)
+      return { pctA: base, pctB: 1 - base }
+    }
+    case 'balanced':
+    default: {
+      const base = clamp(0.60 + noise(), 0.53, 0.70)
+      return i % 2 === 0
+        ? { pctA: base, pctB: 1 - base }
+        : { pctA: 1 - base, pctB: base }
+    }
+  }
+}
+
+function generateSimulatedRounds(voterCount, roundCount, pattern) {
+  const rounds = []
+  for (let i = 0; i < roundCount; i++) {
+    const { pctA, pctB } = getDistribution(i, roundCount, pattern)
+    const votesA = Math.round(voterCount * pctA)
+    const votesB = voterCount - votesA
+    const voters = new Map()
+    for (let v = 0; v < voterCount; v++) {
+      voters.set(`sim_${i}_${v}`, v < votesA ? 'A' : 'B')
+    }
+    const ts = Date.now() - (roundCount - i) * 90_000
+    rounds.push({
+      id: randomUUID().slice(0, 8),
+      votesA, votesB, votesNeutral: 0,
+      allowNeutral: false,
+      voters,
+      status: 'closed',
+      duration: 30,
+      startTime: ts,
+      endTime: ts + 30_000,
+      timerHandle: null
+    })
+  }
+  return rounds
+}
+
 // ─── Socket.io ───────────────────────────────────────────────────────────────
 io.on('connection', (socket) => {
   // Subscribe to a session room
@@ -229,6 +296,25 @@ io.on('connection', (socket) => {
     if (!session) return
     if (tokens.get(sessionId) !== token) return
     session.locked = !session.locked
+    broadcastSession(sessionId)
+  })
+
+  // Admin: run a simulation
+  socket.on('runSimulation', ({ sessionId, token, voterCount, roundCount, pattern }) => {
+    const session = sessions.get(sessionId)
+    if (!session) return
+    if (tokens.get(sessionId) !== token) return
+
+    // Close any active round first
+    const last = session.rounds[session.rounds.length - 1]
+    if (last && last.status === 'voting') closeRound(session, last)
+
+    // Replace all rounds with simulated ones
+    session.rounds = generateSimulatedRounds(
+      Math.max(1, Math.min(100, voterCount || 20)),
+      Math.max(1, Math.min(10, roundCount || 5)),
+      pattern || 'balanced'
+    )
     broadcastSession(sessionId)
   })
 

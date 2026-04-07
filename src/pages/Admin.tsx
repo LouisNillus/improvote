@@ -2,7 +2,9 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { getSocket } from '../lib/socket'
-import type { Session, Round } from '../lib/types'
+import type { Session, Round, SimulationConfig } from '../lib/types'
+import SimulationPanel from '../components/SimulationPanel'
+import MatchStats from '../components/MatchStats'
 
 function formatExpiry(lastActivity: number, now: number): string {
   const ms = (lastActivity + 2 * 60 * 60 * 1000) - now
@@ -85,6 +87,10 @@ export default function Admin() {
   const endSession = useCallback(() => {
     if (!confirm('Terminer le match définitivement ?')) return
     socketRef.current.emit('endSession', { sessionId: id, token })
+  }, [id, token])
+
+  const runSimulation = useCallback((config: SimulationConfig) => {
+    socketRef.current.emit('runSimulation', { sessionId: id, token, ...config })
   }, [id, token])
 
 const copyLink = useCallback(() => {
@@ -290,6 +296,18 @@ const copyLink = useCallback(() => {
           )}
         </div>
       </div>
+
+      {/* Simulation panel */}
+      {session.status === 'active' && (
+        <SimulationPanel onRun={runSimulation} hasRounds={session.rounds.length > 0} />
+      )}
+
+      {/* Stats */}
+      {session.status === 'finished' && session.rounds.filter(r => r.status === 'closed').length > 0 && (
+        <div className="mb-4">
+          <MatchStats session={session} />
+        </div>
+      )}
 
       {/* Round history — compact */}
       {session.rounds.length > 0 && (
