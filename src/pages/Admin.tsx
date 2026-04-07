@@ -257,9 +257,9 @@ const copyLink = useCallback(() => {
                 <div className="badge-voting"><span className="pulse-dot" />Vote en cours</div>
                 <div className="font-black" style={{
                   fontSize: '2.5rem', lineHeight: 1,
-                  color: remainingSec <= 10 ? 'var(--team-b)' : 'var(--gold)',
+                  color: 'var(--gold)',
                   fontVariantNumeric: 'tabular-nums'
-                }}>{remainingSec}<span className="text-sm font-normal ml-1" style={{ color: 'var(--muted)' }}>s</span></div>
+                }}>{remainingSec}<span style={{ fontSize: '2.5rem', fontWeight: 900 }}>s</span></div>
               </div>
 
               {/* Live counts */}

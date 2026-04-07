@@ -204,18 +204,16 @@ export default function Vote() {
             <div className="progress-bar-track" style={{ height: 6 }}>
               <div className="progress-bar-fill" style={{
                 width: `${progress * 100}%`,
-                background: remainingSec <= 10 ? 'var(--team-b)' : 'var(--gold)',
-                transition: 'width 0.2s linear, background 0.3s'
+                background: 'var(--gold)',
+                transition: 'width 0.2s linear'
               }} />
             </div>
             <div className="text-center mt-1">
               <span className="font-black" style={{
                 fontSize: '2.5rem',
-                color: remainingSec <= 10 ? 'var(--team-b)' : 'var(--gold)',
+                color: 'var(--gold)',
                 fontVariantNumeric: 'tabular-nums',
-                transition: 'color 0.3s'
-              }}>{remainingSec}</span>
-              <span className="text-sm ml-1" style={{ color: 'var(--muted)' }}>s</span>
+              }}>{remainingSec}<span style={{ fontSize: '2.5rem', fontWeight: 900 }}>s</span></span>
             </div>
           </div>
         )}
