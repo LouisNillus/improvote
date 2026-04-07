@@ -29,9 +29,17 @@ const COUNTRIES: Country[] = [
   { code: 'MA', name: 'Maroc',      flag: '🇲🇦', primary: '#c1272d', secondary: '#22c55e' },
 ]
 
+function colorDistance(a: string, b: string): number {
+  const parse = (h: string) => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]
+  const [r1,g1,b1] = parse(a), [r2,g2,b2] = parse(b)
+  return Math.sqrt((r1-r2)**2 + (g1-g2)**2 + (b1-b2)**2)
+}
+
 function FlagDisplay({ country, size = 20 }: { country: Country; size?: number }) {
   if (country.flagImg) {
-    return <img src={country.flag} alt={country.name} style={{ width: size, height: size * 0.67, objectFit: 'cover', borderRadius: 2, display: 'inline-block' }} />
+    const w = Math.round(size * 1.15)
+    const h = Math.round(w * 0.67)
+    return <img src={country.flag} alt={country.name} style={{ width: w, height: h, objectFit: 'cover', borderRadius: 5, flexShrink: 0 }} />
   }
   return <span style={{ fontSize: size * 0.075 + 'rem' }}>{country.flag}</span>
 }
@@ -249,13 +257,13 @@ export default function Home() {
       if (!code) return
       const c = COUNTRIES.find(x => x.code === code)!
       setTeamA(c.name)
-      setColorA(c.primary === colorB ? c.secondary : c.primary)
+      setColorA(colorDistance(c.primary, colorB) < 80 ? c.secondary : c.primary)
     } else {
       setCountryB(code)
       if (!code) return
       const c = COUNTRIES.find(x => x.code === code)!
       setTeamB(c.name)
-      setColorB(c.primary === colorA ? c.secondary : c.primary)
+      setColorB(colorDistance(c.primary, colorA) < 80 ? c.secondary : c.primary)
     }
   }
 
