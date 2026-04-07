@@ -4,8 +4,6 @@ import { QRCodeSVG } from 'qrcode.react'
 import { getSocket } from '../lib/socket'
 import type { Session, Round } from '../lib/types'
 
-const DURATION_PRESETS = [30, 60, 90, 120]
-
 function copyText(text: string) {
   if (navigator.clipboard && window.isSecureContext) {
     return navigator.clipboard.writeText(text)
@@ -29,8 +27,7 @@ export default function Admin() {
 
   const [session, setSession] = useState<Session | null>(null)
   const [error, setError] = useState('')
-  const [duration, setDuration] = useState(60)
-  const [customDuration, setCustomDuration] = useState('')
+  const [duration, setDuration] = useState(30)
   const [allowNeutral, setAllowNeutral] = useState(false)
   const [copied, setCopied] = useState(false)
   const [now, setNow] = useState(Date.now())
@@ -61,10 +58,8 @@ export default function Admin() {
   }, [id])
 
   const startRound = useCallback(() => {
-    const d = customDuration ? Number(customDuration) : duration
-    if (!d || d < 5) return
-    socketRef.current.emit('startRound', { sessionId: id, duration: d, token, allowNeutral })
-  }, [id, token, duration, customDuration, allowNeutral])
+    socketRef.current.emit('startRound', { sessionId: id, duration, token, allowNeutral })
+  }, [id, token, duration, allowNeutral])
 
   const endRound = useCallback(() => {
     socketRef.current.emit('endRound', { sessionId: id, token })
@@ -184,24 +179,16 @@ const copyLink = useCallback(() => {
           {!isVoting ? (
             <>
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>Durée</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {DURATION_PRESETS.map(d => (
-                    <button key={d} className="btn text-sm"
-                      style={{
-                        padding: '8px 4px',
-                        background: !customDuration && duration === d ? 'var(--team-a)' : 'var(--surface-2)',
-                        color: !customDuration && duration === d ? '#fff' : 'var(--muted)',
-                        border: '1px solid var(--border)', borderRadius: 8
-                      }}
-                      onClick={() => { setDuration(d); setCustomDuration('') }}>
-                      {d}s
-                    </button>
-                  ))}
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>Durée</label>
+                  <span className="font-black text-lg" style={{ color: 'var(--gold)', fontVariantNumeric: 'tabular-nums' }}>{duration}s</span>
                 </div>
-                <input className="input text-sm" style={{ padding: '8px 12px' }}
-                  placeholder="Durée personnalisée (s)" type="number" min={5} max={600}
-                  value={customDuration} onChange={e => setCustomDuration(e.target.value)} />
+                <input type="range" min={5} max={60} step={1} value={duration}
+                  onChange={e => setDuration(Number(e.target.value))}
+                  style={{ width: '100%', accentColor: 'var(--team-a)', cursor: 'pointer' }} />
+                <div className="flex justify-between text-xs" style={{ color: 'var(--muted)' }}>
+                  <span>5s</span><span>60s</span>
+                </div>
               </div>
 
               {/* Neutral toggle */}
@@ -222,8 +209,8 @@ const copyLink = useCallback(() => {
               </label>
 
               <button className="btn btn-success w-full" style={{ padding: '14px', fontSize: '1rem' }}
-                onClick={startRound} disabled={session.status === 'finished' || activeDuration < 5}>
-                ▶ Lancer le vote ({activeDuration}s)
+                onClick={startRound} disabled={session.status === 'finished'}>
+                ▶ Lancer le vote ({duration}s)
               </button>
             </>
           ) : (

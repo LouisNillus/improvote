@@ -40,8 +40,8 @@ function serializeSession(session) {
       ...r,
       voterCount: voters.size
     })),
-    scoreA: session.rounds.filter(r => r.status === 'closed' && r.votesA > r.votesB).length,
-    scoreB: session.rounds.filter(r => r.status === 'closed' && r.votesB > r.votesA).length
+    scoreA: session.rounds.filter(r => r.status === 'closed' && r.votesA >= r.votesB && (r.votesA + r.votesB + r.votesNeutral) > 0).length,
+    scoreB: session.rounds.filter(r => r.status === 'closed' && r.votesB >= r.votesA && (r.votesA + r.votesB + r.votesNeutral) > 0).length
   }
 }
 
