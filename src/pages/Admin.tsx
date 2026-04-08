@@ -298,12 +298,6 @@ const copyLink = useCallback(() => {
                 ▶ Lancer le vote ({duration}s)
               </button>
 
-              {/* Replay button — shown if last round is closed and has history */}
-              {currentRound?.status === 'closed' && (currentRound.voteHistory?.length ?? 0) > 0 && !isNative && (
-                <button className="btn btn-ghost w-full text-sm" onClick={() => setReplayRound(session.rounds.length - 1)}>
-                  🎬 Rejouer le vote
-                </button>
-              )}
             </>
           ) : (
             <>
@@ -360,7 +354,7 @@ const copyLink = useCallback(() => {
       {/* Stats */}
       {session.rounds.filter(r => r.status === 'closed').length > 0 && (
         <div className="mb-4">
-          <MatchStats session={session} />
+          <MatchStats session={session} onReplay={!isNative ? (r) => setReplayRound(session.rounds.indexOf(r)) : undefined} />
         </div>
       )}
 

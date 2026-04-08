@@ -2,9 +2,10 @@ import type { Session, Round } from '../lib/types'
 
 interface MatchStatsProps {
   session: Session
+  onReplay?: (round: Round) => void
 }
 
-export default function MatchStats({ session }: MatchStatsProps) {
+export default function MatchStats({ session, onReplay }: MatchStatsProps) {
   const rounds = session.rounds.filter(r => r.status === 'closed')
   if (rounds.length === 0) return null
 
@@ -20,7 +21,7 @@ export default function MatchStats({ session }: MatchStatsProps) {
       {/* Bar chart — vote distribution per round */}
       <div>
         <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>Répartition des votes par manche</p>
-        <BarChart rounds={rounds} colorA={colorA} colorB={colorB} teamA={session.teamA} teamB={session.teamB} />
+        <BarChart rounds={rounds} colorA={colorA} colorB={colorB} teamA={session.teamA} teamB={session.teamB} onReplay={onReplay} />
       </div>
 
       {/* Momentum line chart */}
@@ -65,8 +66,9 @@ export const BAR_LAYOUT = {
   },
 }
 
-function BarChart({ rounds, colorA, colorB, teamA, teamB }: {
+function BarChart({ rounds, colorA, colorB, teamA, teamB, onReplay }: {
   rounds: Round[]; colorA: string; colorB: string; teamA: string; teamB: string
+  onReplay?: (round: Round) => void
 }) {
   const { W, LEGEND_H, MARGIN_LEFT, MARGIN_BOTTOM, MARGIN_TOP, gap } = BAR_LAYOUT
   const H = 200 + LEGEND_H
@@ -176,6 +178,14 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB }: {
               fontSize={9} fill={labelColor} fontWeight={700} fontFamily="system-ui">
               M{i + 1}
             </text>
+            {/* Replay button — shown if voteHistory available */}
+            {onReplay && (r.voteHistory?.length ?? 0) > 0 && barW >= 16 && (
+              <text x={labelX} y={yA - 14} textAnchor="middle"
+                fontSize={11} style={{ cursor: 'pointer' }}
+                onClick={() => onReplay(r)}>
+                🎬
+              </text>
+            )}
           </g>
         )
       })}
