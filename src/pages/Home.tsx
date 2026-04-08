@@ -97,8 +97,7 @@ function RadialColorPicker({ value, onChange, exclude }: {
       )}
 
       {(open || closing) && PALETTE.map((color, i) => {
-        const selectedIdx = PALETTE.indexOf(value)
-        const angle = Math.PI + ((i - selectedIdx) / PALETTE.length) * 2 * Math.PI
+        const angle = Math.PI + (i / PALETTE.length) * 2 * Math.PI
         const sx = RADIUS + Math.cos(angle) * RADIUS
         const sy = Math.sin(angle) * RADIUS
         const isExcluded = color === exclude
@@ -322,7 +321,7 @@ export default function Home() {
 
         {/* Join with code */}
         <form onSubmit={handleJoin} className="card p-5 flex flex-col gap-3 mb-4">
-          <h2 className="font-bold text-sm" style={{ color: 'var(--gold)' }}>Rejoindre un match</h2>
+          <h2 className="font-bold text-sm text-center" style={{ color: 'var(--gold)' }}>Rejoindre un match</h2>
           <div className="flex gap-2">
             <input
               className="input flex-1"
@@ -331,10 +330,10 @@ export default function Home() {
               onChange={e => setCode(e.target.value.toUpperCase())}
               maxLength={5}
               autoCapitalize="characters"
-              style={{ letterSpacing: '0.15em', fontWeight: 700, fontSize: '1.1rem', textTransform: 'uppercase' }}
+              style={{ letterSpacing: '0.15em', fontWeight: 700, fontSize: '1.1rem', textTransform: 'uppercase', color: 'var(--gold)' }}
             />
-            <button type="submit" className="btn btn-primary" style={{ padding: '12px 20px' }} disabled={joining}>
-              {joining ? '...' : '→'}
+            <button type="submit" className="btn btn-primary" style={{ padding: '12px 20px', fontSize: '1.4rem', lineHeight: 1, fontWeight: 900 }} disabled={joining}>
+              {joining ? '...' : '➜'}
             </button>
           </div>
           {joinError && <p className="text-xs" style={{ color: 'var(--team-b)' }}>{joinError}</p>}
@@ -349,7 +348,7 @@ export default function Home() {
 
         {/* Create match */}
         <form onSubmit={handleCreate} className="card p-5 flex flex-col gap-5" style={{ overflow: 'visible' }}>
-          <h2 className="font-bold text-sm" style={{ color: 'var(--muted)' }}>Nouveau match</h2>
+          <h2 className="font-bold text-sm text-center" style={{ color: 'var(--muted)' }}>Nouveau match</h2>
 
           {/* Team A */}
           <div className="flex flex-col gap-2" style={{ position: 'relative' }}>
@@ -362,7 +361,7 @@ export default function Home() {
                   if (countryA && e.target.value !== COUNTRIES.find(c => c.code === countryA)?.name) setCountryA(null)
                 }}
                 maxLength={40}
-                style={{ borderColor: `${colorA}55` }} />
+                style={{ borderColor: `${colorA}55`, color: colorA }} />
               <CountryPicker value={countryA} onChange={code => selectCountry('A', code)} />
             </div>
           </div>
@@ -384,7 +383,7 @@ export default function Home() {
                   if (countryB && e.target.value !== COUNTRIES.find(c => c.code === countryB)?.name) setCountryB(null)
                 }}
                 maxLength={40}
-                style={{ borderColor: `${colorB}55` }} />
+                style={{ borderColor: `${colorB}55`, color: colorB }} />
               <CountryPicker value={countryB} onChange={code => selectCountry('B', code)} />
             </div>
           </div>
