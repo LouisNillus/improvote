@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiFetch } from '../lib/api'
 
 const PALETTE = [
   '#4f8ef7', '#38bdf8', '#818cf8', '#a855f7',
@@ -273,7 +274,7 @@ export default function Home() {
     setCreateError('')
     setCreating(true)
     try {
-      const res = await fetch('/api/sessions', {
+      const res = await apiFetch('/api/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ teamA: teamA.trim(), teamB: teamB.trim(), colorA, colorB })
@@ -294,7 +295,7 @@ export default function Home() {
     setJoinError('')
     setJoining(true)
     try {
-      const res = await fetch(`/api/code/${trimmed}`)
+      const res = await apiFetch(`/api/code/${trimmed}`)
       if (!res.ok) throw new Error((await res.json()).error)
       const { sessionId } = await res.json()
       navigate(`/vote/${sessionId}`)

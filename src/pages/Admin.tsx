@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { getSocket } from '../lib/socket'
+import { apiFetch } from '../lib/api'
 import type { Session, Round, SimulationConfig } from '../lib/types'
 import SimulationPanel from '../components/SimulationPanel'
 import MatchStats from '../components/MatchStats'
@@ -62,7 +63,7 @@ export default function Admin() {
 
   useEffect(() => {
     if (!id) return
-    fetch(`/api/sessions/${id}`)
+    apiFetch(`/api/sessions/${id}`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(setSession)
       .catch(() => setError('Session introuvable ou expirée.'))
