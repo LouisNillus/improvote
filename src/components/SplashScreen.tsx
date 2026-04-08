@@ -9,7 +9,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
     const t1 = setTimeout(() => setPhase('hold'), 600)
     const t2 = setTimeout(() => setPhase('out-content'), 2400)
     const t3 = setTimeout(() => setPhase('out-bg'), 3400)
-    const t4 = setTimeout(() => onDone(), 4600)
+    const t4 = setTimeout(() => onDone(), 4300)
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4) }
   }, [onDone])
 
@@ -22,7 +22,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
       background: '#070a12',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20,
       opacity: bgOut ? 0 : 1,
-      transition: bgOut ? 'opacity 1.2s ease' : 'none',
+      transition: bgOut ? 'opacity 0.9s ease' : 'none',
       pointerEvents: 'none',
     }}>
       <img
