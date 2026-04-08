@@ -42,6 +42,7 @@ function createRound(duration, allowNeutral) {
     votesNeutral: 0,
     allowNeutral: !!allowNeutral,
     voters: new Map(), // voterId → 'A' | 'B' | 'neutral'
+    voteHistory: [],   // [{dA, dB, dN, t}] deltas since startTime (ms)
     status: 'voting',
     duration,
     startTime: now,
@@ -139,11 +140,19 @@ function generateSimulatedRounds(voterCount, values) {
       voters.set(`sim_${i}_${k}`, k < votesA ? 'A' : 'B')
     }
     const ts = Date.now() - (values.length - i) * 90_000
+    // Generate fake timestamps spread over 30s for replay
+    const voteHistory = []
+    for (let k = 0; k < voterCount; k++) {
+      const team = k < votesA ? 'A' : 'B'
+      voteHistory.push({ dA: team === 'A' ? 1 : 0, dB: team === 'B' ? 1 : 0, dN: 0, t: Math.random() * 30_000 })
+    }
+    voteHistory.sort((a, b) => a.t - b.t)
     rounds.push({
       id: randomUUID().slice(0, 8),
       votesA, votesB, votesNeutral: 0,
       allowNeutral: false,
       voters,
+      voteHistory,
       status: 'closed',
       duration: 30,
       startTime: ts,
@@ -255,6 +264,14 @@ io.on('connection', (socket) => {
       else if (team === 'B') round.votesB++
       else if (team === 'neutral') round.votesNeutral++
     }
+
+    // Record delta for replay
+    round.voteHistory.push({
+      dA: (team === 'A' ? 1 : 0) - (previous === 'A' ? 1 : 0),
+      dB: (team === 'B' ? 1 : 0) - (previous === 'B' ? 1 : 0),
+      dN: (team === 'neutral' ? 1 : 0) - (previous === 'neutral' ? 1 : 0),
+      t: Date.now() - round.startTime
+    })
 
     socket.emit('voteConfirmed', { team })
     broadcastSession(sessionId)

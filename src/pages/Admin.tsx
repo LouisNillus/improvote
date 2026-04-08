@@ -6,6 +6,7 @@ import { apiFetch } from '../lib/api'
 import type { Session, Round, SimulationConfig } from '../lib/types'
 import SimulationPanel from '../components/SimulationPanel'
 import MatchStats from '../components/MatchStats'
+import VoteReplay from '../components/VoteReplay'
 
 function formatExpiry(lastActivity: number, now: number): string {
   const ms = (lastActivity + 2 * 60 * 60 * 1000) - now
@@ -43,6 +44,7 @@ export default function Admin() {
   const [allowNeutral, setAllowNeutral] = useState(false)
   const [copied, setCopied] = useState(false)
   const [qrModal, setQrModal] = useState(false)
+  const [replayRound, setReplayRound] = useState<number | null>(null)
   const isNative = !!(window as any).Capacitor?.isNativePlatform?.()
   const [now, setNow] = useState(Date.now())
   const socketRef = useRef(getSocket())
@@ -138,6 +140,19 @@ const copyLink = useCallback(() => {
   return (
     <div className="min-h-screen spotlight-bg p-4 pb-8"
       style={{ maxWidth: 900, margin: '0 auto', '--team-a': session.colorA, '--team-b': session.colorB } as React.CSSProperties}>
+
+      {/* Vote replay modal */}
+      {replayRound !== null && session.rounds[replayRound] && (
+        <VoteReplay
+          round={session.rounds[replayRound]}
+          teamA={session.teamA}
+          teamB={session.teamB}
+          colorA={session.colorA}
+          colorB={session.colorB}
+          onClose={() => setReplayRound(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="fade-in pt-4 pb-3 flex items-center justify-between gap-4 flex-wrap">
         <div>
@@ -282,6 +297,13 @@ const copyLink = useCallback(() => {
                 onClick={startRound} disabled={session.status === 'finished'}>
                 ▶ Lancer le vote ({duration}s)
               </button>
+
+              {/* Replay button — shown if last round is closed and has history */}
+              {currentRound?.status === 'closed' && (currentRound.voteHistory?.length ?? 0) > 0 && !isNative && (
+                <button className="btn btn-ghost w-full text-sm" onClick={() => setReplayRound(session.rounds.length - 1)}>
+                  🎬 Rejouer le vote
+                </button>
+              )}
             </>
           ) : (
             <>

@@ -6,6 +6,13 @@ export interface SimulationConfig {
   values: number[]  // one per round
 }
 
+export interface VoteEvent {
+  dA: number   // delta team A
+  dB: number   // delta team B
+  dN: number   // delta neutral
+  t: number    // ms since round start
+}
+
 export interface Round {
   id: string
   votesA: number
@@ -13,6 +20,7 @@ export interface Round {
   votesNeutral: number
   allowNeutral: boolean
   voterCount: number
+  voteHistory?: VoteEvent[]
   status: 'voting' | 'closed'
   duration: number
   startTime: number
