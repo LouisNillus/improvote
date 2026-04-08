@@ -175,14 +175,14 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB, onReplay }: {
               {total}v
             </text>
             {/* X label colored by winner */}
-            <text x={labelX} y={H - 4} textAnchor="middle"
+            <text x={labelX} y={H - REPLAY_H - 4} textAnchor="middle"
               fontSize={9} fill={labelColor} fontWeight={700} fontFamily="system-ui">
               M{i + 1}
             </text>
-            {/* Replay button — below M label */}
+            {/* Replay button — in reserved space below M label */}
             {onReplay && (r.voteHistory?.length ?? 0) > 0 && (
               <text x={labelX} y={H - 2} textAnchor="middle"
-                fontSize={10} style={{ cursor: 'pointer', userSelect: 'none' }}
+                fontSize={9} fill="var(--muted)" style={{ cursor: 'pointer', userSelect: 'none' }}
                 onClick={() => onReplay(r)}>
                 ▶
               </text>
