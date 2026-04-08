@@ -197,8 +197,8 @@ export default function Vote() {
 
       <div className="flex-1 flex flex-col px-4 pb-8 gap-4">
 
-        {/* Score */}
-        {session.rounds.some(r => r.status === 'closed') && (
+        {/* Score — masqué quand le match est terminé (MatchOver l'affiche déjà) */}
+        {session.status !== 'finished' && session.rounds.some(r => r.status === 'closed') && (
           <div className="card-sm px-5 py-3 flex items-center justify-center gap-4 fade-in">
             <div className="flex-1 text-center font-black text-2xl" style={{ color: 'var(--team-a)' }}>{session.scoreA}</div>
             <div className="text-xs font-bold" style={{ color: 'var(--muted)' }}>vs</div>
@@ -206,16 +206,16 @@ export default function Vote() {
           </div>
         )}
 
-        {/* Status */}
-        <div className="flex justify-center">
-          {session.status === 'finished' ? (
-            <div className="badge-waiting">Match terminé</div>
-          ) : isVoting ? (
-            <div className="badge-voting"><span className="pulse-dot" />Vote en cours !</div>
-          ) : (
-            <div className="badge-waiting"><span className="pulse-dot" />En attente du vote...</div>
-          )}
-        </div>
+        {/* Status — masqué quand le match est terminé */}
+        {session.status !== 'finished' && (
+          <div className="flex justify-center">
+            {isVoting ? (
+              <div className="badge-voting"><span className="pulse-dot" />Vote en cours !</div>
+            ) : (
+              <div className="badge-waiting"><span className="pulse-dot" />En attente du vote...</div>
+            )}
+          </div>
+        )}
 
         {/* Timer */}
         {isVoting && (
