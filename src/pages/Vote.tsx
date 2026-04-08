@@ -75,7 +75,9 @@ export default function Vote() {
     const socket = socketRef.current
     if (!id) return
 
-    socket.emit('subscribe', { sessionId: id })
+    const subscribe = () => socket.emit('subscribe', { sessionId: id })
+    subscribe()
+    socket.on('connect', subscribe)
 
     socket.on('sessionUpdate', (data: Session) => {
       if (!data.locked) {
@@ -106,6 +108,7 @@ export default function Vote() {
     })
 
     return () => {
+      socket.off('connect', subscribe)
       socket.off('sessionUpdate')
       socket.off('voteConfirmed')
       socket.off('error')

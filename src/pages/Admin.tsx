@@ -60,10 +60,12 @@ export default function Admin() {
   useEffect(() => {
     const socket = socketRef.current
     if (!id) return
-    socket.emit('subscribe', { sessionId: id })
+    const subscribe = () => socket.emit('subscribe', { sessionId: id })
+    subscribe()
+    socket.on('connect', subscribe)
     socket.on('sessionUpdate', (data: Session) => setSession(data))
     socket.on('error', (data: { message: string }) => setError(data.message))
-    return () => { socket.off('sessionUpdate'); socket.off('error') }
+    return () => { socket.off('connect', subscribe); socket.off('sessionUpdate'); socket.off('error') }
   }, [id])
 
   useEffect(() => {
