@@ -49,7 +49,8 @@ export default function Admin() {
   const [now, setNow] = useState(Date.now())
   const socketRef = useRef(getSocket())
 
-  const voteUrl = session ? `${window.location.origin}/vote/${session.code}` : `${window.location.origin}/vote/${id}`
+  const origin = import.meta.env.VITE_SERVER_URL || window.location.origin
+  const voteUrl = session ? `${origin}/vote/${session.code}` : `${origin}/vote/${id}`
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 500)
