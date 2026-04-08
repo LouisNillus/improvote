@@ -42,6 +42,8 @@ export default function Admin() {
   const [duration, setDuration] = useState(30)
   const [allowNeutral, setAllowNeutral] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [qrModal, setQrModal] = useState(false)
+  const isNative = !!(window as any).Capacitor?.isNativePlatform?.()
   const [now, setNow] = useState(Date.now())
   const socketRef = useRef(getSocket())
 
@@ -195,13 +197,36 @@ const copyLink = useCallback(() => {
       {/* Main grid */}
       <div className="grid gap-4 mb-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
 
+        {/* QR Code modal (APK only) */}
+        {qrModal && (
+          <div onClick={() => setQrModal(false)} style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24,
+          }}>
+            <div style={{ background: '#fff', borderRadius: 16, padding: 24 }} onClick={e => e.stopPropagation()}>
+              <QRCodeSVG value={voteUrl} size={260} level="M" />
+            </div>
+            <button onClick={() => setQrModal(false)} className="btn btn-ghost" style={{ fontSize: '1rem', padding: '10px 32px' }}>
+              ← Retour
+            </button>
+          </div>
+        )}
+
         {/* QR Code */}
         <div className="card p-5 flex flex-col gap-3">
           <h2 className="font-bold text-xs uppercase tracking-widest" style={{ color: 'var(--muted)' }}>QR Code public</h2>
-          <a href={voteUrl} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center rounded-xl p-3" style={{ background: '#fff', display: 'flex', cursor: 'pointer' }}>
-            <QRCodeSVG value={voteUrl} size={180} level="M" />
-          </a>
+          {isNative ? (
+            <div onClick={() => setQrModal(true)}
+              className="flex items-center justify-center rounded-xl p-3" style={{ background: '#fff', cursor: 'pointer' }}>
+              <QRCodeSVG value={voteUrl} size={180} level="M" />
+            </div>
+          ) : (
+            <a href={voteUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center justify-center rounded-xl p-3" style={{ background: '#fff', display: 'flex', cursor: 'pointer' }}>
+              <QRCodeSVG value={voteUrl} size={180} level="M" />
+            </a>
+          )}
           {/* Code d'accès */}
           <div className="flex flex-col items-center gap-1 rounded-xl py-3 px-4"
             style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
