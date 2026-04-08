@@ -125,7 +125,7 @@ export default function SimulationPanel({ onRun, hasRounds, colorA, colorB, team
 
   function run() {
     setRunning(true)
-    onRun({ voterCount, values })
+    onRun({ voterCount, values: values.map(v => -v) })
     setTimeout(() => { setRunning(false); setOpen(false) }, 800)
   }
 
@@ -172,10 +172,10 @@ export default function SimulationPanel({ onRun, hasRounds, colorA, colorB, team
               <label className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>Manches</label>
               <span className="font-black text-sm" style={{ color: 'var(--gold)' }}>{roundCount}</span>
             </div>
-            <input type="range" min={1} max={10} step={1} value={roundCount}
+            <input type="range" min={1} max={20} step={1} value={roundCount}
               onChange={e => setRoundCount(Number(e.target.value))}
               style={{ width: '100%', accentColor: 'var(--gold)', cursor: 'pointer' }} />
-            <div className="flex justify-between text-xs" style={{ color: 'var(--muted)' }}><span>1</span><span>10</span></div>
+            <div className="flex justify-between text-xs" style={{ color: 'var(--muted)' }}><span>1</span><span>20</span></div>
           </div>
 
           {/* Editable curve */}
@@ -235,7 +235,7 @@ export default function SimulationPanel({ onRun, hasRounds, colorA, colorB, team
                 {values.map((v, i) => {
                   const cx = toX(i, n)
                   const cy = toY(v)
-                  const color = v < 0 ? colorA : v > 0 ? colorB : 'var(--muted)'
+                  const color = v > 0 ? colorA : v < 0 ? colorB : 'var(--muted)'
                   return (
                     <g key={i}
                       onMouseDown={e => { e.preventDefault(); setDragging(i) }}
@@ -257,10 +257,10 @@ export default function SimulationPanel({ onRun, hasRounds, colorA, colorB, team
                       {/* % label */}
                       <text x={cx} y={cy - (dragging === i ? 14 : 12)} textAnchor="middle"
                         fontSize={8} fill="white" fontFamily="system-ui" fontWeight={700}>
-                        {v < 0
-                          ? `${Math.round(Math.abs(v) * 50 + 50)}% A`
-                          : v > 0
-                          ? `${Math.round(v * 50 + 50)}% B`
+                        {v > 0
+                          ? `${Math.round(v * 50 + 50)}% A`
+                          : v < 0
+                          ? `${Math.round(Math.abs(v) * 50 + 50)}% B`
                           : '50/50'}
                       </text>
                     </g>

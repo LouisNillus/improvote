@@ -316,51 +316,6 @@ const copyLink = useCallback(() => {
         </div>
       )}
 
-      {/* Round history — compact */}
-      {session.rounds.length > 0 && (
-        <div className="card p-4 fade-in">
-          <h2 className="font-bold text-xs uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
-            Historique
-          </h2>
-          <div className="flex flex-col gap-1">
-            {[...session.rounds].reverse().map((round, i) => {
-              const idx = session.rounds.length - i
-              const total = round.votesA + round.votesB + round.votesNeutral
-              const rPctA = total > 0 ? Math.round((round.votesA / total) * 100) : 0
-              const rPctB = total > 0 ? Math.round((round.votesB / total) * 100) : 0
-              const rPctN = total > 0 ? Math.round((round.votesNeutral / total) * 100) : 0
-              const winA = round.votesA > round.votesB
-              const winB = round.votesB > round.votesA
-
-              return (
-                <div key={round.id} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm flex-wrap"
-                  style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-                  <span className="font-bold text-xs shrink-0 whitespace-nowrap" style={{ color: 'var(--muted)' }}>Manche {idx}</span>
-                  <span className="text-xs shrink-0" style={{ color: 'var(--muted)' }}>{round.duration}s · {total}v</span>
-                  <div className="flex-1 flex items-center gap-2 min-w-0">
-                    <span style={{ color: 'var(--team-a)', fontWeight: winA ? 800 : 400 }}>
-                      {winA ? '🏆 ' : ''}{rPctA}%
-                    </span>
-                    <div className="flex-1 flex gap-0.5 h-2 rounded overflow-hidden" style={{ background: 'var(--bg)' }}>
-                      <div style={{ width: `${rPctA}%`, background: 'var(--team-a)', transition: 'width 0.4s' }} />
-                      {round.allowNeutral && <div style={{ width: `${rPctN}%`, background: 'var(--muted)', transition: 'width 0.4s' }} />}
-                      <div style={{ width: `${rPctB}%`, background: 'var(--team-b)', transition: 'width 0.4s' }} />
-                    </div>
-                    <span style={{ color: 'var(--team-b)', fontWeight: winB ? 800 : 400 }}>
-                      {rPctB}%{winB ? ' 🏆' : ''}
-                    </span>
-                  </div>
-                  {round.status === 'voting' && (
-                    <span className="badge-voting text-xs" style={{ padding: '2px 8px' }}>
-                      <span className="pulse-dot" style={{ width: 6, height: 6 }} /> En cours
-                    </span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
