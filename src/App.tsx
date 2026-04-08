@@ -10,6 +10,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/admin/:id" element={<Admin />} />
         <Route path="/vote/:id" element={<Vote />} />
+        <Route path="/v/:id" element={<Vote />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

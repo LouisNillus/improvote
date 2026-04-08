@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { getSocket } from '../lib/socket'
+import { apiFetch } from '../lib/api'
 import type { Session, Round, VoteTeam } from '../lib/types'
 import MatchStats from '../components/MatchStats'
 
@@ -37,13 +38,33 @@ function saveLocalVote(sessionId: string, roundId: string, team: VoteTeam) {
 }
 
 export default function Vote() {
-  const { id } = useParams<{ id: string }>()
+  const { id: rawId } = useParams<{ id: string }>()
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [error, setError] = useState('')
   const [myTeam, setMyTeam] = useState<VoteTeam>(null)
   const [now, setNow] = useState(Date.now())
   const socketRef = useRef(getSocket())
-  const hasAccessRef = useRef(!!id && localStorage.getItem(`access_${id}`) === '1')
+  const hasAccessRef = useRef(false)
+
+  // Resolve code → session ID if needed
+  useEffect(() => {
+    if (!rawId) return
+    if (rawId.length <= 5) {
+      apiFetch(`/api/code/${rawId}`)
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(({ sessionId: sid }: { sessionId: string }) => {
+          hasAccessRef.current = localStorage.getItem(`access_${sid}`) === '1'
+          setSessionId(sid)
+        })
+        .catch(() => setError('Code invalide ou session introuvable.'))
+    } else {
+      hasAccessRef.current = localStorage.getItem(`access_${rawId}`) === '1'
+      setSessionId(rawId)
+    }
+  }, [rawId])
+
+  const id = sessionId
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 200)

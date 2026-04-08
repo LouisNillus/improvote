@@ -11,7 +11,7 @@ function formatExpiry(lastActivity: number, now: number): string {
   const ms = (lastActivity + 2 * 60 * 60 * 1000) - now
   if (ms <= 0) return 'bientôt'
   const h = Math.floor(ms / 3600000)
-  const m = Math.ceil((ms % 3600000) / 60000)
+  const m = Math.floor((ms % 3600000) / 60000)
   if (h > 0) return `${h}h${m > 0 ? String(m).padStart(2, '0') : ''}`
   return `${m} min`
 }
@@ -47,7 +47,7 @@ export default function Admin() {
   const [now, setNow] = useState(Date.now())
   const socketRef = useRef(getSocket())
 
-  const voteUrl = `${window.location.origin}/vote/${id}`
+  const voteUrl = session ? `${window.location.origin}/vote/${session.code}` : `${window.location.origin}/vote/${id}`
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 500)
@@ -238,7 +238,7 @@ const copyLink = useCallback(() => {
           </div>
 
           <button className="btn btn-ghost w-full text-sm" onClick={copyLink}>
-            {copied ? '✅ Copié !' : '📋 Copier le lien de vote'}
+            {copied ? 'Copié !' : '🔗 Copier le lien de vote'}
           </button>
         </div>
 
