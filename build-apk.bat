@@ -89,26 +89,24 @@ echo [4/6] Installation SDK requis...
 call "%ANDROID_SDK_ROOT%\cmdline-tools\latest\bin\sdkmanager.bat" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 if errorlevel 1 (echo [ERREUR] Echec installation composants SDK. & pause & exit /b 1)
 
-echo [5/6] Build APK release...
+echo [5/6] Build APK debug...
 pushd android
-call gradlew.bat assembleRelease -x lintVitalAnalyzeRelease
+call gradlew.bat assembleDebug
 if errorlevel 1 (popd & echo [ERREUR] Echec build APK. & pause & exit /b 1)
 popd
 
-if "%APK_TARGET_ABI%"=="" set "APK_TARGET_ABI=arm64-v8a"
+set "APK_OUTPUT_DIR=android\app\build\outputs\apk\debug"
 
-set "APK_OUTPUT_DIR=android\app\build\outputs\apk\release"
-set "APK_SRC=%APK_OUTPUT_DIR%\app-%APK_TARGET_ABI%-release.apk"
-if not exist "%APK_SRC%" set "APK_SRC=%APK_OUTPUT_DIR%\app-release.apk"
-if not exist "%APK_SRC%" (
-  for /f "delims=" %%F in ('dir /b /a:-d "%APK_OUTPUT_DIR%\app-*-release.apk" 2^>nul') do (
-    if not defined APK_FOUND set "APK_FOUND=1" & set "APK_SRC=%APK_OUTPUT_DIR%\%%F"
-  )
+REM Recherche exhaustive de l'APK genere
+set "APK_SRC="
+for /f "delims=" %%F in ('dir /b /a:-d "%APK_OUTPUT_DIR%\*.apk" 2^>nul') do (
+  if not defined APK_SRC set "APK_SRC=%APK_OUTPUT_DIR%\%%F"
 )
-if not exist "%APK_SRC%" (
+if not defined APK_SRC (
   echo [ERREUR] APK introuvable dans %APK_OUTPUT_DIR%
   pause & exit /b 1
 )
+echo [INFO] APK trouve : %APK_SRC%
 
 set "APK_DIR=apk_dist"
 if not exist "%APK_DIR%" mkdir "%APK_DIR%"
@@ -145,7 +143,7 @@ echo ==============================================
 echo [OK] APK genere et uploade
 echo ==============================================
 echo APK local  : %GH_ASSET_PATH%
-echo ABI cible  : %APK_TARGET_ABI%
+echo APK source : %APK_SRC%
 echo Serveur    : %VITE_SERVER_URL%
 echo URL        : %APK_URL%
 echo.
