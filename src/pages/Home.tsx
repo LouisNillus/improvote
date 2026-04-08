@@ -71,7 +71,7 @@ function RadialColorPicker({ value, onChange, exclude }: {
   }, [open, closing, close])
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', width: 36, height: 36, flexShrink: 0, zIndex: open ? 50 : 1 }}>
+    <div ref={containerRef} style={{ position: 'relative', width: 36, height: 36, flexShrink: 0, zIndex: open ? 50 : 'auto' }}>
       <button
         type="button"
         onClick={toggle}
@@ -91,7 +91,7 @@ function RadialColorPicker({ value, onChange, exclude }: {
 
       {open && !closing && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 1, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)', transition: 'opacity 0.2s' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)', transition: 'opacity 0.2s' }}
           onMouseDown={close}
         />
       )}
@@ -113,7 +113,7 @@ function RadialColorPicker({ value, onChange, exclude }: {
               position: 'absolute',
               top: '50%', left: '50%',
               width: size, height: size,
-              zIndex: PALETTE.length - i,
+              zIndex: 50 + PALETTE.length - i,
               '--sx': `${sx}px`,
               '--sy': `${sy}px`,
               animationDelay: closing
