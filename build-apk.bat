@@ -1,91 +1,154 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal EnableExtensions EnableDelayedExpansion
 
-echo ================================================
-echo   ImproVote - Build APK + GitHub Release
-echo ================================================
-echo.
+cd /d "%~dp0"
 
-:: ── Demander l'URL du serveur ───────────────────────────────────────────────
-set /p SERVER_URL="URL du serveur (ex: https://improvote.monserveur.com) : "
-if "!SERVER_URL!"=="" (
-  echo ERREUR : URL requise.
-  pause & exit /b 1
-)
+REM Config locale optionnelle (surcharge GH_APK_REPO, VITE_SERVER_URL, etc.)
+if exist "build_apk.local.bat" call "build_apk.local.bat"
 
-:: ── Verifier les prerequis ──────────────────────────────────────────────────
-where node >nul 2>&1 || (echo ERREUR : Node.js introuvable. & pause & exit /b 1)
-where java >nul 2>&1 || (echo ERREUR : Java introuvable. Installer JDK 17+. & pause & exit /b 1)
-where gh >nul 2>&1 || (echo ERREUR : gh CLI introuvable. Installer depuis https://cli.github.com & pause & exit /b 1)
-
-if not defined ANDROID_HOME (
-  echo ERREUR : ANDROID_HOME non defini. Configurer le SDK Android.
-  pause & exit /b 1
-)
-
-:: ── Installer les deps Capacitor si besoin ──────────────────────────────────
-echo [1/6] Verification des dependances Capacitor...
-if not exist "node_modules\@capacitor\core" (
-  echo Installation de Capacitor...
-  call npm install @capacitor/core @capacitor/android @capacitor/cli --save
-)
-
-:: ── Build web ────────────────────────────────────────────────────────────────
-echo [2/6] Build de l'application web...
-set VITE_SERVER_URL=!SERVER_URL!
-call npm run build
-if errorlevel 1 (echo ERREUR : Build web echoue. & pause & exit /b 1)
-
-:: ── Initialiser / synchroniser Capacitor ────────────────────────────────────
-echo [3/6] Synchronisation Capacitor...
-if not exist "android" (
-  echo Ajout de la plateforme Android...
-  call npx cap add android
-)
-call npx cap sync android
-if errorlevel 1 (echo ERREUR : cap sync echoue. & pause & exit /b 1)
-
-:: ── Build APK ────────────────────────────────────────────────────────────────
-echo [4/6] Build de l'APK...
-cd android
-call gradlew.bat assembleDebug
-if errorlevel 1 (echo ERREUR : Gradle build echoue. & pause & cd .. & exit /b 1)
-cd ..
-
-:: ── Copier l'APK ─────────────────────────────────────────────────────────────
-echo [5/6] Copie de l'APK...
-set APK_SRC=android\app\build\outputs\apk\debug\app-debug.apk
-set APK_DST=ImproVote.apk
-copy /Y "!APK_SRC!" "!APK_DST!" >nul
-if errorlevel 1 (echo ERREUR : APK introuvable. & pause & exit /b 1)
-echo APK genere : !APK_DST!
-
-:: ── GitHub Release ───────────────────────────────────────────────────────────
-echo [6/6] Creation de la release GitHub...
-
-:: Determiner le prochain numero de version
-for /f "tokens=*" %%v in ('gh release list --limit 1 --json tagName --jq ".[0].tagName" 2^>nul') do set LAST_TAG=%%v
-if "!LAST_TAG!"=="" (
-  set NEW_TAG=v1.0.0
-) else (
-  :: Incrementer le patch (ex: v1.0.3 -> v1.0.4)
-  for /f "tokens=1,2,3 delims=." %%a in ("!LAST_TAG:v=!") do (
-    set /a PATCH=%%c+1
-    set NEW_TAG=v%%a.%%b.!PATCH!
+REM Hydrate VITE_SERVER_URL depuis .env si non defini
+if exist ".env" (
+  for /f "usebackq tokens=1,* delims==" %%A in (`findstr /b /c:"VITE_SERVER_URL=" ".env"`) do (
+    if "%%A"=="VITE_SERVER_URL" if "%VITE_SERVER_URL%"=="" set "VITE_SERVER_URL=%%B"
   )
 )
 
-set /p CONFIRM="Publier la release !NEW_TAG! sur GitHub ? (O/N) : "
-if /i not "!CONFIRM!"=="O" (
-  echo Release annulee. APK disponible localement : !APK_DST!
+if "%VITE_SERVER_URL%"=="" (
+  echo [ERREUR] VITE_SERVER_URL non configure.
+  echo          Definis VITE_SERVER_URL dans un fichier .env ou build_apk.local.bat.
+  echo          Exemple: VITE_SERVER_URL=https://improvote.monserveur.com
+  pause
+  exit /b 1
+)
+
+echo ==============================================
+echo   ImproVote - Build APK + GitHub Release
+echo ==============================================
+echo.
+echo [INFO] Serveur cible : %VITE_SERVER_URL%
+echo.
+
+where npm >nul 2>nul
+if errorlevel 1 (echo [ERREUR] npm introuvable. & pause & exit /b 1)
+echo [CHECK] npm OK
+
+where gh >nul 2>nul
+if errorlevel 1 (echo [ERREUR] gh introuvable. Installe GitHub CLI puis lance "gh auth login". & pause & exit /b 1)
+echo [CHECK] gh OK
+
+gh auth status >nul 2>nul
+if errorlevel 1 (echo [ERREUR] gh non authentifie. Lance "gh auth login". & pause & exit /b 1)
+echo [CHECK] gh auth OK
+
+where java >nul 2>nul
+if errorlevel 1 (echo [ERREUR] Java introuvable. Installe un JDK 17+. & pause & exit /b 1)
+echo [CHECK] Java OK
+
+if "%ANDROID_SDK_ROOT%"=="" set "ANDROID_SDK_ROOT=%LOCALAPPDATA%\Android\Sdk"
+if "%ANDROID_HOME%"=="" set "ANDROID_HOME=%ANDROID_SDK_ROOT%"
+
+if not exist "%ANDROID_SDK_ROOT%\cmdline-tools\latest\bin\sdkmanager.bat" (
+  echo [ERREUR] Android SDK cmdline-tools introuvable:
+  echo          %ANDROID_SDK_ROOT%\cmdline-tools\latest\bin\sdkmanager.bat
+  pause
+  exit /b 1
+)
+echo [CHECK] Android SDK OK
+
+if not exist "node_modules" (
+  echo [INFO] node_modules absent, installation npm...
+  call npm install
+  if errorlevel 1 (echo [ERREUR] Echec npm install. & pause & exit /b 1)
+)
+
+REM Installer Capacitor si absent
+if not exist "node_modules\@capacitor\core" (
+  echo [INFO] Installation Capacitor...
+  call npm install @capacitor/core @capacitor/android @capacitor/cli --save
+  if errorlevel 1 (echo [ERREUR] Echec installation Capacitor. & pause & exit /b 1)
+)
+
+echo [1/6] Build web...
+call npx vite build
+if errorlevel 1 (echo [ERREUR] Echec build web. & pause & exit /b 1)
+
+if not exist "android" (
+  echo [INFO] Plateforme Android absente, ajout via Capacitor...
+  call npx cap add android
+  if errorlevel 1 (echo [ERREUR] Echec npx cap add android. & pause & exit /b 1)
+)
+
+echo [2/6] Sync Capacitor Android...
+call npx cap sync android
+if errorlevel 1 (echo [ERREUR] Echec npx cap sync android. & pause & exit /b 1)
+
+echo [3/6] Acceptation des licences SDK...
+(for /l %%N in (1,1,300) do @echo y) | call "%ANDROID_SDK_ROOT%\cmdline-tools\latest\bin\sdkmanager.bat" --licenses >nul 2>nul
+
+echo [4/6] Installation SDK requis...
+call "%ANDROID_SDK_ROOT%\cmdline-tools\latest\bin\sdkmanager.bat" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+if errorlevel 1 (echo [ERREUR] Echec installation composants SDK. & pause & exit /b 1)
+
+echo [5/6] Build APK release...
+pushd android
+call gradlew.bat assembleRelease -x lintVitalAnalyzeRelease
+if errorlevel 1 (popd & echo [ERREUR] Echec build APK. & pause & exit /b 1)
+popd
+
+if "%APK_TARGET_ABI%"=="" set "APK_TARGET_ABI=arm64-v8a"
+
+set "APK_OUTPUT_DIR=android\app\build\outputs\apk\release"
+set "APK_SRC=%APK_OUTPUT_DIR%\app-%APK_TARGET_ABI%-release.apk"
+if not exist "%APK_SRC%" set "APK_SRC=%APK_OUTPUT_DIR%\app-release.apk"
+if not exist "%APK_SRC%" (
+  for /f "delims=" %%F in ('dir /b /a:-d "%APK_OUTPUT_DIR%\app-*-release.apk" 2^>nul') do (
+    if not defined APK_FOUND set "APK_FOUND=1" & set "APK_SRC=%APK_OUTPUT_DIR%\%%F"
+  )
+)
+if not exist "%APK_SRC%" (
+  echo [ERREUR] APK introuvable dans %APK_OUTPUT_DIR%
+  pause & exit /b 1
+)
+
+set "APK_DIR=apk_dist"
+if not exist "%APK_DIR%" mkdir "%APK_DIR%"
+
+for /f "usebackq delims=" %%T in (`powershell -NoProfile -Command "Get-Date -Format yyyyMMdd-HHmmss"`) do set "STAMP=%%T"
+
+if "%GH_APK_REPO%"==""           set "GH_APK_REPO=LouisNillus/improvote"
+if "%GH_APK_TAG%"==""            set "GH_APK_TAG=apk-download"
+if "%GH_APK_TITLE%"==""          set "GH_APK_TITLE=ImproVote APK"
+if "%GH_APK_ASSET_PREFIX%"==""   set "GH_APK_ASSET_PREFIX=improvote-release"
+
+set "GH_ASSET_NAME=%GH_APK_ASSET_PREFIX%-!STAMP!.apk"
+set "GH_ASSET_PATH=%CD%\%APK_DIR%\%GH_ASSET_NAME%"
+copy /Y "%APK_SRC%" "%GH_ASSET_PATH%" >nul
+
+echo [6/6] Upload GitHub Release...
+gh release view "%GH_APK_TAG%" -R "%GH_APK_REPO%" >nul 2>nul
+if errorlevel 1 (
+  gh release create "%GH_APK_TAG%" -R "%GH_APK_REPO%" --title "%GH_APK_TITLE%" --notes "APK ImproVote - telechargement direct."
+  if errorlevel 1 (echo [ERREUR] Echec creation release GitHub. & pause & exit /b 1)
+)
+
+gh release upload "%GH_APK_TAG%" "%GH_ASSET_PATH%" -R "%GH_APK_REPO%" --clobber
+if errorlevel 1 (
+  echo [WARN] Echec upload GitHub. APK local disponible:
+  echo        %GH_ASSET_PATH%
   pause & exit /b 0
 )
 
-gh release create "!NEW_TAG!" "!APK_DST!" --title "ImproVote !NEW_TAG!" --notes "Build APK - serveur : !SERVER_URL!"
-if errorlevel 1 (echo ERREUR : Release GitHub echouee. & pause & exit /b 1)
+set "APK_URL=https://github.com/%GH_APK_REPO%/releases/download/%GH_APK_TAG%/%GH_ASSET_NAME%"
 
 echo.
-echo ================================================
-echo   APK publie avec succes : !NEW_TAG!
-echo ================================================
+echo ==============================================
+echo [OK] APK genere et uploade
+echo ==============================================
+echo APK local  : %GH_ASSET_PATH%
+echo ABI cible  : %APK_TARGET_ABI%
+echo Serveur    : %VITE_SERVER_URL%
+echo URL        : %APK_URL%
+echo.
+
 pause
+exit /b 0
