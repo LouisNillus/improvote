@@ -8,7 +8,12 @@ import SplashScreen from './components/SplashScreen'
 const isNative = !!(window as any).Capacitor?.isNativePlatform?.()
 
 export default function App() {
-  const [splash, setSplash] = useState(isNative)
+  const [splash, setSplash] = useState(() => {
+    if (!isNative) return false
+    if (sessionStorage.getItem('splashShown')) return false
+    sessionStorage.setItem('splashShown', '1')
+    return true
+  })
 
   return (
     <>
