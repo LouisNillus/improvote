@@ -1,0 +1,11 @@
+{
+  "appId": "com.improvote.app",
+  "appName": "ImproVote",
+  "webDir": "dist",
+  "server": {
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
