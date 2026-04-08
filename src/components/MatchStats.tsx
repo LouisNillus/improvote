@@ -71,8 +71,9 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB, onReplay }: {
   onReplay?: (round: Round) => void
 }) {
   const { W, LEGEND_H, MARGIN_LEFT, MARGIN_BOTTOM, MARGIN_TOP, gap } = BAR_LAYOUT
-  const H = 200 + LEGEND_H
-  const chartH = H - MARGIN_BOTTOM - MARGIN_TOP
+  const REPLAY_H = onReplay ? 16 : 0
+  const H = 200 + LEGEND_H + REPLAY_H
+  const chartH = H - MARGIN_BOTTOM - MARGIN_TOP - REPLAY_H
   const n = rounds.length
   const barW = BAR_LAYOUT.barW(n)
 
@@ -178,12 +179,12 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB, onReplay }: {
               fontSize={9} fill={labelColor} fontWeight={700} fontFamily="system-ui">
               M{i + 1}
             </text>
-            {/* Replay button — shown if voteHistory available */}
-            {onReplay && (r.voteHistory?.length ?? 0) > 0 && barW >= 16 && (
-              <text x={labelX} y={yA - 14} textAnchor="middle"
-                fontSize={11} style={{ cursor: 'pointer' }}
+            {/* Replay button — below M label */}
+            {onReplay && (r.voteHistory?.length ?? 0) > 0 && (
+              <text x={labelX} y={H - 2} textAnchor="middle"
+                fontSize={10} style={{ cursor: 'pointer', userSelect: 'none' }}
                 onClick={() => onReplay(r)}>
-                🎬
+                ▶
               </text>
             )}
           </g>
