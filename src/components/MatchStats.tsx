@@ -49,7 +49,7 @@ function textColorFor(hex: string): string {
 
 export const BAR_LAYOUT = {
   W: 500,
-  LEGEND_H: 40,
+  LEGEND_H: 52,
   MARGIN_LEFT: 8,
   MARGIN_BOTTOM: 24,
   get MARGIN_TOP() { return this.LEGEND_H + 12 },
@@ -77,21 +77,39 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB }: {
   const textA = textColorFor(colorA)
   const textB = textColorFor(colorB)
 
+  const hasNeutral = rounds.some(r => r.votesNeutral > 0)
+
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ overflow: 'visible' }}>
-      {/* Légende — teamA puis teamB, l'un sous l'autre */}
+      <defs>
+        <pattern id="neutral-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="5" stroke="rgba(160,160,160,0.7)" strokeWidth="2" />
+        </pattern>
+      </defs>
+
+      {/* Légende — teamA, teamB, neutre (si applicable) */}
       <g transform="translate(0, 2)">
         <rect width={10} height={10} fill={colorA} rx={2} />
         <text x={14} y={9} fontSize={9} fill={colorA} fontWeight={700} fontFamily="system-ui">{teamA}</text>
         <rect y={14} width={10} height={10} fill={colorB} rx={2} />
         <text x={14} y={23} fontSize={9} fill={colorB} fontWeight={700} fontFamily="system-ui">{teamB}</text>
+        {hasNeutral && (
+          <>
+            <rect y={28} width={10} height={10} fill="url(#neutral-hatch)" rx={2}
+              style={{ outline: '1px solid rgba(160,160,160,0.4)' }} />
+            <rect y={28} width={10} height={10} fill="none" stroke="rgba(160,160,160,0.4)" rx={2} />
+            <text x={14} y={37} fontSize={9} fill="var(--muted)" fontWeight={700} fontFamily="system-ui">Neutre</text>
+          </>
+        )}
       </g>
 
       {rounds.map((r, i) => {
         const total = r.votesA + r.votesB + r.votesNeutral || 1
         const hA = (r.votesA / total) * chartH
+        const hN = (r.votesNeutral / total) * chartH
         const hB = (r.votesB / total) * chartH
         const pctA = Math.round((r.votesA / total) * 100)
+        const pctN = Math.round((r.votesNeutral / total) * 100)
         const pctB = Math.round((r.votesB / total) * 100)
         const x = MARGIN_LEFT + i * (barW + gap)
         const winA = r.votesA > r.votesB
@@ -100,34 +118,56 @@ function BarChart({ rounds, colorA, colorB, teamA, teamB }: {
         const labelColor = winA ? colorA : winB ? colorB : 'var(--gold)'
         const showInner = barW >= 20
 
+        // y positions: A (top) → N (middle) → B (bottom)
+        const yA = MARGIN_TOP + chartH - hA - hN - hB
+        const yN = MARGIN_TOP + chartH - hN - hB
+        const yB = MARGIN_TOP + chartH - hB
+
         return (
           <g key={r.id}>
             {/* Team A bar (top) */}
-            <rect x={x} y={MARGIN_TOP + chartH - hA - hB} width={barW} height={hA}
+            <rect x={x} y={yA} width={barW} height={hA}
               fill={!winA && !winB ? 'var(--gold)' : colorA} rx={1} />
+            {/* Neutral bar (middle) */}
+            {hN > 0 && (
+              <rect x={x} y={yN} width={barW} height={hN}
+                fill="url(#neutral-hatch)" />
+            )}
             {/* Team B bar (bottom) */}
-            <rect x={x} y={MARGIN_TOP + chartH - hB} width={barW} height={hB}
+            <rect x={x} y={yB} width={barW} height={hB}
               fill={!winA && !winB ? 'var(--gold)' : colorB} rx={1} />
-            {/* Tie: divider line at the junction */}
+            {/* Tie: divider lines at A/N and N/B junctions */}
             {!winA && !winB && (
-              <line x1={x} y1={MARGIN_TOP + chartH - hB} x2={x + barW} y2={MARGIN_TOP + chartH - hB}
-                stroke="rgba(0,0,0,0.55)" strokeWidth={2.5} />
+              <>
+                <line x1={x} y1={yN} x2={x + barW} y2={yN}
+                  stroke="rgba(0,0,0,0.55)" strokeWidth={2.5} />
+                {hN > 0 && (
+                  <line x1={x} y1={yB} x2={x + barW} y2={yB}
+                    stroke="rgba(0,0,0,0.55)" strokeWidth={2.5} />
+                )}
+              </>
             )}
             {/* % inside bars if tall enough */}
             {showInner && hA > 16 && (
-              <text x={labelX} y={MARGIN_TOP + chartH - hB - hA / 2 + 4} textAnchor="middle"
+              <text x={labelX} y={yA + hA / 2 + 4} textAnchor="middle"
                 fontSize={8} fill={!winA && !winB ? 'rgba(0,0,0,0.7)' : textA} fontWeight={700} fontFamily="system-ui">
                 {pctA}%
               </text>
             )}
+            {showInner && hN > 16 && (
+              <text x={labelX} y={yN + hN / 2 + 4} textAnchor="middle"
+                fontSize={8} fill="rgba(200,200,200,0.9)" fontWeight={700} fontFamily="system-ui">
+                {pctN}%
+              </text>
+            )}
             {showInner && hB > 16 && (
-              <text x={labelX} y={MARGIN_TOP + chartH - hB / 2 + 4} textAnchor="middle"
+              <text x={labelX} y={yB + hB / 2 + 4} textAnchor="middle"
                 fontSize={8} fill={!winA && !winB ? 'rgba(0,0,0,0.7)' : textB} fontWeight={700} fontFamily="system-ui">
                 {pctB}%
               </text>
             )}
             {/* vote counts above bars */}
-            <text x={labelX} y={MARGIN_TOP + chartH - hA - hB - 3} textAnchor="middle"
+            <text x={labelX} y={yA - 3} textAnchor="middle"
               fontSize={8} fill="var(--muted)" fontFamily="system-ui">
               {total}v
             </text>
