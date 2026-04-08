@@ -295,6 +295,9 @@ export default function Vote() {
             )}
           </div>
 
+        ) : session.status === 'finished' ? (
+          <MatchOver session={session} />
+
         ) : currentRound?.status === 'closed' ? (
           <div className="flex-1 flex flex-col gap-4 fade-in">
             <div className="text-center">
@@ -308,9 +311,6 @@ export default function Vote() {
             <LiveResults session={session} round={currentRound}
               pctA={pctA} pctB={pctB} pctN={pctN} total={total} myTeam={myTeam} showWinner />
           </div>
-
-        ) : session.status === 'finished' ? (
-          <MatchOver session={session} />
 
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 fade-in">
@@ -397,30 +397,48 @@ function formatExpiry(lastActivity: number, now: number): string {
 function MatchOver({ session }: { session: Session }) {
   const scoreA = session.scoreA ?? 0
   const scoreB = session.scoreB ?? 0
-  const teamWon = scoreA > scoreB ? session.teamA : scoreB > scoreA ? session.teamB : null
-  const winColor = scoreA > scoreB ? 'var(--team-a)' : scoreB > scoreA ? 'var(--team-b)' : 'var(--gold)'
+  const winA = scoreA > scoreB
+  const winB = scoreB > scoreA
+  const teamWon = winA ? session.teamA : winB ? session.teamB : null
+  const winColor = winA ? 'var(--team-a)' : winB ? 'var(--team-b)' : 'var(--gold)'
+  const losingOpacity = 0.35
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-5 fade-in text-center">
-      <div style={{ fontSize: '4rem' }}>🎭</div>
-      <div>
-        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Match terminé</p>
-        {teamWon
-          ? <p className="font-black text-2xl" style={{ color: winColor }}>🏆 {teamWon} gagne !</p>
-          : <p className="font-black text-2xl" style={{ color: 'var(--gold)' }}>⚖️ Égalité !</p>
-        }
-        <p className="text-sm mt-2" style={{ color: 'var(--muted)' }}>Score final : {scoreA} – {scoreB}</p>
-      </div>
+    <div className="flex-1 flex flex-col items-center justify-center gap-6 fade-in text-center pb-8">
+      <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Match terminé</p>
+
+      {/* Winner highlight */}
+      {teamWon ? (
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+          padding: '24px 40px', borderRadius: 20,
+          background: `color-mix(in srgb, ${winColor} 12%, transparent)`,
+          border: `2px solid color-mix(in srgb, ${winColor} 40%, transparent)`,
+          boxShadow: `0 0 40px color-mix(in srgb, ${winColor} 20%, transparent)`,
+        }}>
+          <span style={{ fontSize: '3rem' }}>🏆</span>
+          <span className="font-black" style={{ fontSize: '2rem', color: winColor, lineHeight: 1 }}>{teamWon}</span>
+          <span className="text-sm font-semibold" style={{ color: winColor, opacity: 0.7 }}>remporte le match !</span>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '24px 40px' }}>
+          <span style={{ fontSize: '3rem' }}>⚖️</span>
+          <span className="font-black text-2xl" style={{ color: 'var(--gold)' }}>Égalité !</span>
+        </div>
+      )}
+
+      {/* Scores */}
       <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
-        <div className="card-sm p-3 text-center">
-          <div className="font-black text-3xl" style={{ color: 'var(--team-a)' }}>{scoreA}</div>
-          <div className="text-xs mt-1" style={{ color: 'var(--team-a)' }}>{session.teamA}</div>
+        <div className="card-sm p-4 text-center" style={{ opacity: winB ? losingOpacity : 1, transition: 'opacity 0.5s' }}>
+          <div className="font-black" style={{ fontSize: '2.5rem', color: 'var(--team-a)', lineHeight: 1 }}>{scoreA}</div>
+          <div className="text-xs mt-2 font-semibold" style={{ color: 'var(--team-a)' }}>{session.teamA}</div>
         </div>
-        <div className="card-sm p-3 text-center">
-          <div className="font-black text-3xl" style={{ color: 'var(--team-b)' }}>{scoreB}</div>
-          <div className="text-xs mt-1" style={{ color: 'var(--team-b)' }}>{session.teamB}</div>
+        <div className="card-sm p-4 text-center" style={{ opacity: winA ? losingOpacity : 1, transition: 'opacity 0.5s' }}>
+          <div className="font-black" style={{ fontSize: '2.5rem', color: 'var(--team-b)', lineHeight: 1 }}>{scoreB}</div>
+          <div className="text-xs mt-2 font-semibold" style={{ color: 'var(--team-b)' }}>{session.teamB}</div>
         </div>
       </div>
+
       <div className="w-full">
         <MatchStats session={session} />
       </div>
