@@ -68,6 +68,33 @@ if not exist "node_modules\@capacitor\core" (
   if errorlevel 1 (echo [ERREUR] Echec installation Capacitor. & pause & exit /b 1)
 )
 
+REM Installer @capacitor/assets si absent
+if not exist "node_modules\@capacitor\assets" (
+  echo [INFO] Installation @capacitor/assets...
+  call npm install @capacitor/assets --save-dev
+  if errorlevel 1 (echo [ERREUR] Echec installation @capacitor/assets. & pause & exit /b 1)
+)
+
+REM Generer l'icone source 1024x1024 avec l'emoji 🎭 si absente
+if not exist "assets\icon.png" (
+  echo [INFO] Generation de l'icone APK...
+  if not exist "assets" mkdir "assets"
+  powershell -NoProfile -Command ^
+    "Add-Type -AssemblyName System.Drawing;" ^
+    "$sz = 1024; $bmp = New-Object System.Drawing.Bitmap($sz,$sz);" ^
+    "$g = [System.Drawing.Graphics]::FromImage($bmp);" ^
+    "$g.SmoothingMode = 'AntiAlias'; $g.TextRenderingHint = 'AntiAlias';" ^
+    "$g.Clear([System.Drawing.Color]::FromArgb(255,18,18,30));" ^
+    "$font = New-Object System.Drawing.Font('Segoe UI Emoji', 680, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel);" ^
+    "$sf = New-Object System.Drawing.StringFormat;" ^
+    "$sf.Alignment = 'Center'; $sf.LineAlignment = 'Center';" ^
+    "$rect = [System.Drawing.RectangleF]::new(0,0,$sz,$sz);" ^
+    "$g.DrawString([char]::ConvertFromUtf32(0x1F3AD), $font, [System.Drawing.Brushes]::White, $rect, $sf);" ^
+    "$g.Dispose(); $bmp.Save('assets\icon.png', [System.Drawing.Imaging.ImageFormat]::Png); $bmp.Dispose();" ^
+    "Write-Host '[INFO] Icon OK'"
+  if errorlevel 1 (echo [ERREUR] Echec generation icone. & pause & exit /b 1)
+)
+
 echo [1/6] Build web...
 call npx vite build
 if errorlevel 1 (echo [ERREUR] Echec build web. & pause & exit /b 1)
@@ -78,18 +105,22 @@ if not exist "android" (
   if errorlevel 1 (echo [ERREUR] Echec npx cap add android. & pause & exit /b 1)
 )
 
-echo [2/6] Sync Capacitor Android...
+echo [2/6] Generation des icones Android...
+call npx capacitor-assets generate --android
+if errorlevel 1 (echo [WARN] Echec generation icones, icones par defaut utilisees.)
+
+echo [3/6] Sync Capacitor Android...
 call npx cap sync android
 if errorlevel 1 (echo [ERREUR] Echec npx cap sync android. & pause & exit /b 1)
 
-echo [3/6] Acceptation des licences SDK...
+echo [4/6] Acceptation des licences SDK...
 (for /l %%N in (1,1,300) do @echo y) | call "%ANDROID_SDK_ROOT%\cmdline-tools\latest\bin\sdkmanager.bat" --licenses >nul 2>nul
 
-echo [4/6] Installation SDK requis...
+echo [5/6] Installation SDK requis...
 call "%ANDROID_SDK_ROOT%\cmdline-tools\latest\bin\sdkmanager.bat" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 if errorlevel 1 (echo [ERREUR] Echec installation composants SDK. & pause & exit /b 1)
 
-echo [5/6] Build APK debug...
+echo [6/6] Build APK debug...
 pushd android
 call gradlew.bat assembleDebug
 if errorlevel 1 (popd & echo [ERREUR] Echec build APK. & pause & exit /b 1)
@@ -122,7 +153,7 @@ set "GH_ASSET_NAME=%GH_APK_ASSET_PREFIX%-!STAMP!.apk"
 set "GH_ASSET_PATH=%CD%\%APK_DIR%\%GH_ASSET_NAME%"
 copy /Y "%APK_SRC%" "%GH_ASSET_PATH%" >nul
 
-echo [6/6] Upload GitHub Release...
+echo [7/7] Upload GitHub Release...
 gh release view "%GH_APK_TAG%" -R "%GH_APK_REPO%" >nul 2>nul
 if errorlevel 1 (
   gh release create "%GH_APK_TAG%" -R "%GH_APK_REPO%" --title "%GH_APK_TITLE%" --notes "APK ImproVote - telechargement direct."

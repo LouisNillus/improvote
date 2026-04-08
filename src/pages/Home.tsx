@@ -398,7 +398,7 @@ export default function Home() {
           <button type="submit" className="btn btn-primary w-full"
             style={{ padding: '13px', fontSize: '1rem' }}
             disabled={creating}>
-            {creating ? 'Création...' : '🎬 Créer le match'}
+            {creating ? 'Création...' : 'Créer le match'}
           </button>
         </form>
 
